@@ -1,0 +1,51 @@
+'use client'
+import { useIsMobile } from '@/hooks/useIsMobile'
+
+const features = [
+  { n: '01', t: 'Real-time translation', d: 'Every message auto-translated to each member\'s preferred language. Powered by Sarvam AI — built specifically for Indian languages.' },
+  { n: '02', t: 'AI thread summaries', d: 'Missed a long thread? One click catches you up with a Gemini-powered summary in your own language.' },
+  { n: '03', t: 'Voice messages', d: 'Record in any language. Sarvam transcribes, translates, and plays back in everyone\'s preferred tongue automatically.' },
+  { n: '04', t: 'Tasks inside chat', d: 'AI extracts action items directly from messages. Track them without ever leaving the conversation.' },
+  { n: '05', t: 'Smart replies', d: 'Context-aware suggestions that understand what was just said — in any language, under 200ms.' },
+  { n: '06', t: 'Zero noise', d: 'No channels. No status updates. No notification storms. Just rooms, messages, and work that matters.' },
+]
+
+export default function Features() {
+  const { isMobile } = useIsMobile()
+
+  return (
+    <section id="features" style={{ 
+      padding: isMobile ? '60px 20px' : '100px 80px', 
+      maxWidth: 1200, 
+      margin: '0 auto' 
+    }}>
+      <div style={{ fontSize: 11, letterSpacing: '3px', color: '#3a3835', textTransform: 'uppercase', marginBottom: 52, display: 'flex', alignItems: 'center', gap: 12 }}>
+        What you get
+        <div style={{ flex: 1, height: 1, background: 'rgba(240,237,230,0.07)' }} />
+      </div>
+
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+        gap: isMobile ? 12 : 20
+      }}>
+        {features.map((f, i) => (
+          <div key={i} style={{
+            padding: isMobile ? '20px' : '28px',
+            border: '1px solid rgba(240,237,230,0.07)',
+            borderRadius: 12,
+            background: 'rgba(240,237,230,0.01)',
+            transition: 'background 0.15s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(240,237,230,0.03)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(240,237,230,0.01)'}
+          >
+            <div style={{ fontSize: 11, color: '#3a3835', letterSpacing: '2px', marginBottom: 20 }}>{f.n}</div>
+            <div style={{ fontSize: 19, fontFamily: 'Instrument Serif, serif', fontStyle: 'italic', color: '#f0ede6', marginBottom: 12, lineHeight: 1.25 }}>{f.t}</div>
+            <div style={{ fontSize: 13, color: '#6b6960', lineHeight: 1.75, fontWeight: 300 }}>{f.d}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}

@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0c0c0b;
+  --foreground: #f0ede6;
+  --accent: #d4a843;
+  --border: rgba(240,237,230,0.07);
+  --card: #111110;
+  --muted: #6b6960;
+  --muted2: #3a3835;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Geist', sans-serif;
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+.font-serif { font-family: 'Instrument Serif', serif; }
+
+input::placeholder { color: var(--muted); }
+input:focus { outline: none; border-color: rgba(212,168,67,0.4) !important; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(240,237,230,0.1); border-radius: 2px; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile touch improvements */
+* {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Prevent zoom on input focus on iOS */
+input, textarea, select {
+  font-size: 16px !important;
+}
+
+/* Smooth scrolling on iOS */
+.scroll-smooth {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbars on mobile but keep functionality */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
