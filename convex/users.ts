@@ -51,7 +51,7 @@ export const updatePreferredLang = mutation({
   args: { lang: v.string() },
   handler: async (ctx, { lang }) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error('Not authenticated');
+    if (!userId) return;
     await ctx.db.patch(userId, { preferredLang: lang });
   }
 })
@@ -60,7 +60,7 @@ export const updatePresence = mutation({
   args: { presence: v.union(v.literal("online"), v.literal("away"), v.literal("dnd"), v.literal("offline")) },
   handler: async (ctx, { presence }) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error('Not authenticated');
+    if (!userId) return;
     await ctx.db.patch(userId, { presence, lastSeenAt: Date.now() });
   }
 })

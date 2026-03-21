@@ -10,7 +10,7 @@ export const toggleReaction = mutation({
   },
   handler: async (ctx, { messageId, emoji }) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) return;
 
     // Use collect() instead of unique() to handle existing duplicates
     const existingReactions = await ctx.db

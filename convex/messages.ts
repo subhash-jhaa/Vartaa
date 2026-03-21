@@ -159,7 +159,7 @@ export const setTyping = mutation({
   args: { roomId: v.id("rooms"), isTyping: v.boolean() },
   handler: async (ctx, { roomId, isTyping }) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error('Not authenticated');
+    if (!userId) return;
     const user = await ctx.db.get(userId);
     if (!user) throw new Error('User not found');
 

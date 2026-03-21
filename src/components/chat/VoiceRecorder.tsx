@@ -20,6 +20,8 @@ export default function VoiceRecorder({ roomId, onRecordingChange }: VoiceRecord
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const cancelledRef = useRef(false)
+  const finalDurationRef = useRef<number>(0)
+  const startTimeRef = useRef<number>(0)
 
   const generateUploadUrl = useMutation(api.messages.generateUploadUrl)
   const sendVoiceMessage = useMutation(api.messages.sendVoiceMessage)
@@ -62,7 +64,7 @@ export default function VoiceRecorder({ roomId, onRecordingChange }: VoiceRecord
       await sendVoiceMessage({ 
         roomId, 
         audioStorageId: storageId as Id<'_storage'>, 
-        audioDuration: recordingDuration 
+        audioDuration: finalDurationRef.current
       })
     } catch (err) {
       console.error('Voice upload failed:', err)
@@ -85,6 +87,7 @@ export default function VoiceRecorder({ roomId, onRecordingChange }: VoiceRecord
       
       cancelledRef.current = false
       chunksRef.current = []
+      startTimeRef.current = Date.now()
       setRecordingDuration(0)
 
       mediaRecorder.ondataavailable = (event) => {
@@ -115,9 +118,11 @@ export default function VoiceRecorder({ roomId, onRecordingChange }: VoiceRecord
   }
 
   const stopRecording = () => {
-    if (timerRef.current) clearInterval(timerRef.current)
+    finalDurationRef.current = Math.floor((Date.now() - startTimeRef.current) / 1000)
     mediaRecorderRef.current?.stop()
+    if (timerRef.current) clearInterval(timerRef.current)
     setIsRecording(false)
+    setRecordingDuration(0)
     onRecordingChange(false)
   }
 

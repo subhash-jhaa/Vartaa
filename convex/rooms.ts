@@ -70,7 +70,7 @@ export const getMyRooms = query({
   args: {},
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) return [];
 
     // Use the junction table to eliminate full table scans on rooms
     const memberships = await ctx.db
@@ -91,7 +91,7 @@ export const getRoom = query({
   args: { roomId: v.id("rooms") },
   handler: async (ctx, { roomId }) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) return null;
 
     const room = await ctx.db.get(roomId);
     if (!room) throw new Error("Room not found");
