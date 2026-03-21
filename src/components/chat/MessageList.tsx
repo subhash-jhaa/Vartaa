@@ -4,26 +4,21 @@ import { api } from '@convex/_generated/api'
 import { Id } from '@convex/_generated/dataModel'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MessageItem from './MessageItem'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export default function MessageList({ roomId }: { roomId: Id<'rooms'> }) {
-  const { user, isAuthenticated } = useCurrentUser()
+  const { user } = useCurrentUser()
   const messages = useQuery(api.messages.getMessages, { roomId, limit: 50 })
-  const typingUsers = useQuery(api.messages.getTypingUsers, isAuthenticated ? { roomId } : 'skip')
+  const typingUsers = useQuery(api.messages.getTypingUsers, { roomId })
   const bottomRef = useRef<HTMLDivElement>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
-  // Collect unique sender IDs and fetch them in bulk
-  const senderIds = [...new Set(messages?.map(m => m.senderId) ?? [])] as Id<'users'>[]
-  const senders = useQuery(
-    api.users.getUsersByIds,
-    senderIds.length > 0 ? { userIds: senderIds } : 'skip'
-  )
-
-  // Build a lookup map for senders
-  const senderMap: Record<string, any> = {}
-  senders?.forEach(u => {
-    if (u) senderMap[u._id] = u
-  })
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -31,44 +26,38 @@ export default function MessageList({ roomId }: { roomId: Id<'rooms'> }) {
 
   if (messages === undefined) return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 20, height: 20, border: '2px solid rgba(240,237,230,0.15)', borderTopColor: '#c8c5be', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      <div style={{ width: 16, height: 16, border: '1px solid rgba(229,192,123,0.2)', borderTopColor: '#e5c07b', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
     </div>
   )
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 0' }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '32px 16px' : '64px 128px', display: 'flex', flexDirection: 'column', gap: isMobile ? 48 : 112, background: 'var(--obsidian-bg)' }}>
       {messages.length === 0 && (
-        <div style={{ textAlign: 'center', color: '#6b6960', fontSize: 13, padding: '40px 20px' }}>
-          No messages yet. Say hello!
+        <div style={{ textAlign: 'center', color: '#404040', fontSize: 13, fontStyle: 'italic', fontFamily: 'Instrument Serif, Georgia, serif', padding: '80px 0' }}>
+          No messages yet. Express your thought.
         </div>
       )}
 
       {messages.map((msg, idx) => {
         const prevMsg = messages[idx - 1]
-        const showAvatar = !prevMsg || prevMsg.senderId !== msg.senderId ||
-          (msg.createdAt - prevMsg.createdAt) > 5 * 60 * 1000
+        const showAvatar = !prevMsg || prevMsg.senderId !== msg.senderId || (msg.createdAt - prevMsg.createdAt) > 5 * 60 * 1000
         return (
-          <MessageItem
-            key={msg._id}
-            message={msg}
-            sender={senderMap[msg.senderId] ?? null}
-            isOwn={msg.senderId === user?._id}
-            showAvatar={showAvatar}
-            userPreferredLang={user?.preferredLang ?? 'en-IN'}
-          />
+          <MessageItem key={msg._id} message={msg} isOwn={msg.senderId === user?._id} showAvatar={showAvatar} userPreferredLang={user?.preferredLang ?? 'en-IN'} />
         )
       })}
 
       {typingUsers && typingUsers.length > 0 && (
-        <div style={{ padding: '4px 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 3 }}>
-            {[0, 1, 2].map(i => (
-              <span key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: '#6b6960', animation: `bounce 1s ease infinite ${i * 0.2}s`, display: 'inline-block' }} />
-            ))}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '32px 0', borderTop: '1px solid var(--obsidian-border)', width: isMobile ? '100%' : '50%', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {[0,1,2].map(i => (
+                <div key={i} style={{ width: 2, height: 2, borderRadius: '50%', background: 'rgba(229,192,123,0.3)', animation: `subtle-pulse 3s infinite ease-in-out ${i * 0.3}s` }} />
+              ))}
+            </div>
+            <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.25em', color: 'var(--obsidian-text-faint)' }}>
+              {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} translating...
+            </span>
           </div>
-          <span style={{ fontSize: 12, color: '#6b6960' }}>
-            {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
-          </span>
         </div>
       )}
       <div ref={bottomRef} />

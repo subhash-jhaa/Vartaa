@@ -1,18 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500&display=swap');
+
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #0c0c0b;
-  --foreground: #f0ede6;
-  --accent: #d4a843;
-  --border: rgba(240,237,230,0.07);
-  --card: #111110;
-  --muted: #6b6960;
-  --muted2: #3a3835;
+  --background: #111111;
+  --foreground: #d4d4d4;
+  --accent: #e5c07b;
+  --border: rgba(255, 255, 255, 0.06);
+  --card: #1c1c1c;
+  --muted: #737373;
+  --muted2: #404040;
+
+  --obsidian-bg: #111111;
+  --obsidian-surface: #1c1c1c;
+  --obsidian-surface-soft: #0a0a0a;
+  --obsidian-border: rgba(255, 255, 255, 0.06);
+  --obsidian-text: #d4d4d4;
+  --obsidian-text-muted: #737373;
+  --obsidian-text-faint: #404040;
+  --obsidian-primary: #e5c07b;
+  --obsidian-primary-alpha: rgba(229, 192, 123, 0.15);
 }
+
 
 html, body {
   margin: 0;
@@ -61,6 +74,12 @@ input:focus { outline: none; border-color: rgba(212,168,67,0.4) !important; }
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes subtle-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
 
 /* Mobile touch improvements */
 * {

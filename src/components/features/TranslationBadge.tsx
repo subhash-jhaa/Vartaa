@@ -1,4 +1,5 @@
 'use client'
+import { Languages, RotateCw } from 'lucide-react'
 
 interface TranslationBadgeProps {
   originalLang: string
@@ -18,13 +19,18 @@ export default function TranslationBadge({ originalLang, onToggle, showingOrigin
   return (
     <button
       onClick={onToggle}
-      style={{ fontSize: 11, color: '#6b6960', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}
+      style={{ fontSize: 11, color: 'var(--obsidian-text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0', display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, transition: 'color 0.2s' }}
+      onMouseEnter={e => e.currentTarget.style.color = 'var(--obsidian-primary)'}
+      onMouseLeave={e => e.currentTarget.style.color = 'var(--obsidian-text-muted)'}
     >
-      <span style={{ opacity: 0.6 }}>⟳</span>
-      {showingOriginal
-        ? 'Show translation'
-        : `Translated from ${langNames[originalLang] ?? originalLang} · Show original`
-      }
+      <Languages size={12} strokeWidth={2} />
+      <span>
+        {showingOriginal
+          ? 'Show translation'
+          : `Translated from ${langNames[originalLang] ?? originalLang} · Show original`
+        }
+      </span>
+      <RotateCw size={10} style={{ opacity: 0.5, marginLeft: 2 }} />
     </button>
   )
 }

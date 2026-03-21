@@ -4,85 +4,87 @@ import { api } from '@convex/_generated/api'
 import { Id } from '@convex/_generated/dataModel'
 import MessageList from './MessageList'
 import MessageInput from './MessageInput'
-import PinnedMessagesBanner from '@/components/features/PinnedMessages'
+import PinnedMessages from '@/components/features/PinnedMessages'
 import AISummaryButton from '@/components/features/AISummary'
 import RoomTasksPanel from '@/components/features/TaskItem'
-import { useState } from 'react'
-import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { useIsMobile } from '@/hooks/useIsMobile'
+import { useState, useEffect } from 'react'
 
 export default function ChatWindow({ roomId }: { roomId: Id<'rooms'> }) {
-  const { user } = useCurrentUser()
-  const { isMobile } = useIsMobile()
   const hasRoomId = typeof roomId === 'string' && roomId.length > 0
   const room = useQuery(api.rooms.getRoom, hasRoomId ? { roomId } : 'skip')
   const [showTasks, setShowTasks] = useState(false)
+  const [activeTab, setActiveTab] = useState<'live' | 'archive'>('live')
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   if (!hasRoomId) return (
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b6960', fontSize: 14 }}>
-      Invalid room.
-    </div>
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#525252', fontSize: 13 }}>Invalid room.</div>
   )
 
   if (room === undefined) return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 20, height: 20, border: '2px solid rgba(240,237,230,0.15)', borderTopColor: '#c8c5be', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      <div style={{ width: 16, height: 16, border: '1px solid rgba(229,192,123,0.3)', borderTopColor: '#e5c07b', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
     </div>
   )
 
   if (room === null) return (
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b6960', fontSize: 14 }}>
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#525252', fontSize: 13 }}>
       Room not found or you&apos;re not a member.
     </div>
   )
 
   return (
-    <div style={{ display: 'flex', height: '100%', overflow: 'hidden', position: 'relative' }}>
-      {/* Main chat column */}
+    <div style={{ display: 'flex', height: '100%', overflow: 'hidden', background: 'var(--obsidian-bg)' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Room header */}
-        <div style={{ padding: isMobile ? '0 12px' : '0 20px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(240,237,230,0.07)', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#f0ede6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}># {room.name}</span>
-            {!isMobile && room.description && <span style={{ fontSize: 12, color: '#6b6960', marginLeft: 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{room.description}</span>}
+        <header style={{ height: isMobile ? 80 : 96, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: `0 ${isMobile ? 16 : 64}px`, paddingLeft: isMobile ? 80 : 64, borderBottom: '1px solid var(--obsidian-border)', flexShrink: 0, background: 'var(--obsidian-bg)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 16 : 48 }}>
+            <h1 style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'var(--obsidian-text-muted)', fontWeight: 500, margin: 0 }}>#{room.name}</h1>
+            <div style={{ display: 'flex', gap: isMobile ? 16 : 32 }}>
+              {(['live', 'archive'] as const).map(tab => (
+                <button key={tab} onClick={() => setActiveTab(tab)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.25em', color: activeTab === tab ? 'var(--obsidian-primary)' : 'var(--obsidian-text-faint)', fontWeight: activeTab === tab ? 700 : 400, transition: 'color 0.3s' }}>
+                  {isMobile ? tab[0].toUpperCase() : tab}
+                </button>
+              ))}
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 4 : 8 }}>
-            <AISummaryButton roomId={roomId} />
-            <button
-              onClick={() => setShowTasks(t => !t)}
-              style={{ fontSize: 11, color: '#6b6960', background: 'rgba(240,237,230,0.05)', border: '1px solid rgba(240,237,230,0.1)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer' }}
-            >
-              Tasks
-            </button>
-            {!isMobile && <span style={{ fontSize: 12, color: '#6b6960' }}>{room.memberIds.length} members</span>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 32 }}>
+            <button onClick={() => setShowTasks(t => !t)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: showTasks ? 'var(--obsidian-primary)' : 'var(--obsidian-text-faint)', fontSize: 18, transition: 'color 0.3s' }}>⊟</button>
           </div>
-        </div>
+        </header>
 
-        {/* Pinned messages banner */}
-        <PinnedMessagesBanner roomId={roomId} />
-
-        {/* Messages */}
+        <PinnedMessages roomId={roomId} />
         <MessageList roomId={roomId} />
-
-        {/* Input */}
         <MessageInput roomId={roomId} />
       </div>
 
-      {/* Tasks panel (collapsible) */}
       {showTasks && (
-        <div style={{ 
-          width: isMobile ? '100%' : 280,
-          position: isMobile ? 'absolute' : 'relative',
-          right: 0,
-          top: 0,
-          height: '100%',
-          borderLeft: isMobile ? 'none' : '1px solid rgba(240,237,230,0.07)',
-          background: isMobile ? '#0c0c0b' : 'transparent',
-          display: 'flex', 
-          flexDirection: 'column',
-          zIndex: isMobile ? 20 : 'auto',
-        }}>
+        <div style={{ position: isMobile ? 'absolute' : 'relative', top: 0, right: 0, height: '100%', width: 280, borderLeft: '1px solid var(--obsidian-border)', display: 'flex', flexDirection: 'column', background: '#000', zIndex: 80 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: 16 }}>
+             <button onClick={() => setShowTasks(false)} style={{ background: 'none', border: 'none', color: 'var(--obsidian-text-muted)', cursor: 'pointer' }}>×</button>
+          </div>
           <RoomTasksPanel roomId={roomId} />
+        </div>
+      )}
+
+      {!isMobile && (
+        <div style={{ width: 320, borderLeft: '1px solid var(--obsidian-border)', display: 'flex', flexDirection: 'column', padding: '96px 40px 0', background: 'rgba(0,0,0,0.4)', flexShrink: 0 }}>
+          <h3 style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontStyle: 'italic', fontSize: 24, color: 'var(--obsidian-text)', letterSpacing: '-0.02em', marginBottom: 64, marginTop: 0, opacity: 0.7 }}>Insight</h3>
+          <div style={{ marginBottom: 80 }}>
+            <span style={{ display: 'block', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.25em', color: 'var(--obsidian-text-muted)', fontWeight: 700, marginBottom: 24 }}>The Thread</span>
+            <AISummaryButton roomId={roomId} />
+          </div>
+          <div style={{ marginTop: 'auto', paddingBottom: 48, paddingTop: 40, borderTop: '1px solid var(--obsidian-border)' }}>
+            <span style={{ display: 'block', fontFamily: 'Instrument Serif, Georgia, serif', fontSize: 48, color: 'var(--obsidian-primary)', marginBottom: 8, fontWeight: 300, opacity: 0.4 }}>22</span>
+            <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.25em', color: '#2a2a2a', fontWeight: 500 }}>Linguistic Bridges Built</span>
+          </div>
         </div>
       )}
     </div>
