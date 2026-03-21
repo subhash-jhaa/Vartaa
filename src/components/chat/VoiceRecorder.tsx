@@ -15,7 +15,7 @@ export default function VoiceRecorder({ roomId, onRecordingChange }: VoiceRecord
   const [isRecording, setIsRecording] = useState(false)
   const [recordingDuration, setRecordingDuration] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
-  
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -56,14 +56,14 @@ export default function VoiceRecorder({ roomId, onRecordingChange }: VoiceRecord
         headers: { 'Content-Type': mimeType },
         body: blob,
       })
-      
+
       if (!uploadRes.ok) throw new Error('Upload failed')
-      
+
       const { storageId } = await uploadRes.json()
-      
-      await sendVoiceMessage({ 
-        roomId, 
-        audioStorageId: storageId as Id<'_storage'>, 
+
+      await sendVoiceMessage({
+        roomId,
+        audioStorageId: storageId as Id<'_storage'>,
         audioDuration: finalDurationRef.current
       })
     } catch (err) {
@@ -77,14 +77,14 @@ export default function VoiceRecorder({ roomId, onRecordingChange }: VoiceRecord
   const startRecording = async () => {
     if (!isAuthenticated) return
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
-        video: false 
+        video: false
       })
-      
+
       const mimeType = getMimeType()
       const mediaRecorder = new MediaRecorder(stream, { mimeType })
-      
+
       cancelledRef.current = false
       chunksRef.current = []
       startTimeRef.current = Date.now()
@@ -97,7 +97,7 @@ export default function VoiceRecorder({ roomId, onRecordingChange }: VoiceRecord
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop())
         if (cancelledRef.current) return
-        
+
         const blob = new Blob(chunksRef.current, { type: mimeType })
         await uploadVoiceMessage(blob, mimeType)
       }
@@ -157,14 +157,14 @@ export default function VoiceRecorder({ roomId, onRecordingChange }: VoiceRecord
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171', animation: 'pulse 1s ease-in-out infinite' }} />
           <span style={{ fontSize: 13, color: '#f87171', fontFamily: 'monospace', fontWeight: 500 }}>{formatDuration(recordingDuration)}</span>
         </div>
-        <button 
-          onClick={stopRecording} 
+        <button
+          onClick={stopRecording}
           style={{ height: 32, padding: '0 16px', borderRadius: 100, background: '#4ade80', border: 'none', color: '#0c0c0b', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'transform 0.1s' }}
         >
           Send
         </button>
-        <button 
-          onClick={cancelRecording} 
+        <button
+          onClick={cancelRecording}
           style={{ height: 32, padding: '0 12px', borderRadius: 100, background: 'rgba(240,237,230,0.05)', border: '1px solid rgba(240,237,230,0.1)', color: '#6b6960', fontSize: 13, cursor: 'pointer' }}
         >
           Cancel

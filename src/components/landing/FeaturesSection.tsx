@@ -27,24 +27,29 @@ export default function Features() {
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-        gap: isMobile ? 12 : 20
+        gap: 0,
       }}>
-        {features.map((f, i) => (
-          <div key={i} style={{
-            padding: isMobile ? '20px' : '28px',
-            border: '1px solid rgba(240,237,230,0.07)',
-            borderRadius: 12,
-            background: 'rgba(240,237,230,0.01)',
-            transition: 'background 0.15s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(240,237,230,0.03)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(240,237,230,0.01)'}
-          >
-            <div style={{ fontSize: 11, color: '#3a3835', letterSpacing: '2px', marginBottom: 20 }}>{f.n}</div>
-            <div style={{ fontSize: 19, fontFamily: 'Instrument Serif, serif', fontStyle: 'italic', color: '#f0ede6', marginBottom: 12, lineHeight: 1.25 }}>{f.t}</div>
-            <div style={{ fontSize: 13, color: '#6b6960', lineHeight: 1.75, fontWeight: 300 }}>{f.d}</div>
-          </div>
-        ))}
+        {features.map((f, i) => {
+          const isLastInRow = (i + 1) % (isMobile ? 1 : 3) === 0
+          const isLastRow = i >= (features.length - (isMobile ? 1 : 3))
+
+          return (
+            <div key={i} style={{
+              padding: isMobile ? '24px 0' : '40px 32px',
+              borderRight: !isLastInRow ? '1px solid rgba(240,237,230,0.07)' : 'none',
+              borderBottom: !isLastRow ? '1px solid rgba(240,237,230,0.07)' : 'none',
+              background: 'transparent',
+              transition: 'background 0.2s',
+            }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(240,237,230,0.01)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <div style={{ fontSize: 11, color: '#3a3835', letterSpacing: '2px', marginBottom: 20 }}>{f.n}</div>
+              <div style={{ fontSize: 19, fontFamily: 'Instrument Serif, serif', fontStyle: 'italic', color: '#f0ede6', marginBottom: 12, lineHeight: 1.25 }}>{f.t}</div>
+              <div style={{ fontSize: 13, color: '#6b6960', lineHeight: 1.75, fontWeight: 300 }}>{f.d}</div>
+            </div>
+          )
+        })}
       </div>
     </section>
   )
