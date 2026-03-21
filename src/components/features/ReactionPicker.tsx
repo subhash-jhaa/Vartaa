@@ -4,20 +4,17 @@ import { api } from '@convex/_generated/api'
 import { Id } from '@convex/_generated/dataModel'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
-const QUICK_EMOJIS = ['👍', '❤️', '😂', '🙏', '🔥', '✅']
-
 export default function ReactionDisplay({ messageId }: { messageId: Id<'messages'> }) {
   const reactions = useQuery(api.reactions.getReactions, { messageId })
   const toggleReaction = useMutation(api.reactions.toggleReaction)
   const { user, isAuthenticated } = useCurrentUser()
 
   if (!reactions || reactions.length === 0) {
-    // Show quick emojis if no reactions yet (optional UI decision)
     return null 
   }
 
   return (
-    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
       {reactions.map((r) => {
         const isMyReaction = !!user && r.userIds.includes(user._id)
         return (
@@ -28,15 +25,25 @@ export default function ReactionDisplay({ messageId }: { messageId: Id<'messages
               toggleReaction({ messageId, emoji: r.emoji }).catch(console.error)
             }}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: 4,
-              background: isMyReaction ? 'rgba(240,237,230,0.1)' : 'rgba(240,237,230,0.04)',
-              border: `1px solid ${isMyReaction ? 'rgba(240,237,230,0.2)' : 'rgba(240,237,230,0.07)'}`,
-              borderRadius: 100, padding: '2px 8px', cursor: 'pointer',
-              fontSize: 13, color: '#c8c5be', transition: 'all 0.15s',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: isMyReaction ? 'var(--obsidian-primary-alpha)' : 'var(--obsidian-surface-soft)',
+              border: `1px solid ${isMyReaction ? 'var(--obsidian-primary)' : 'var(--obsidian-border)'}`,
+              borderRadius: 100, padding: '3px 10px', cursor: 'pointer',
+              fontSize: 13, color: isMyReaction ? 'var(--obsidian-primary)' : 'var(--obsidian-text)', transition: 'all 0.2s ease',
+              opacity: isMyReaction ? 1 : 0.8,
+              boxShadow: isMyReaction ? '0 0 12px var(--obsidian-primary-alpha)' : 'none'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.opacity = '1';
+              if (!isMyReaction) e.currentTarget.style.borderColor = 'var(--obsidian-text-faint)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.opacity = isMyReaction ? '1' : '0.8';
+              if (!isMyReaction) e.currentTarget.style.borderColor = 'var(--obsidian-border)';
             }}
           >
             <span>{r.emoji}</span>
-            <span style={{ fontSize: 11 }}>{r.count}</span>
+            <span style={{ fontSize: 10, fontWeight: isMyReaction ? 700 : 500, opacity: 0.8 }}>{r.count}</span>
           </button>
         )
       })}

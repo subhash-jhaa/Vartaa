@@ -1,21 +1,53 @@
 'use client'
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useMutation } from 'convex/react'
 import { api } from '@convex/_generated/api'
 import { Id } from '@convex/_generated/dataModel'
 import VoiceRecorder from './VoiceRecorder'
-import SmartReplies from '../features/SmartReplies'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { useIsMobile } from '@/hooks/useIsMobile'
+import { Mic, Languages } from 'lucide-react'
+import SmartReplies from '@/components/features/SmartReplies'
+
+const LANGUAGES = [
+  { code: 'hi-IN', label: 'Hindi', native: 'हिंदी' },
+  { code: 'bn-IN', label: 'Bengali', native: 'বাংলা' },
+  { code: 'te-IN', label: 'Telugu', native: 'తెలుగు' },
+  { code: 'mr-IN', label: 'Marathi', native: 'মরাठी' },
+  { code: 'ta-IN', label: 'Tamil', native: 'தமிழ்' },
+  { code: 'gu-IN', label: 'Gujarati', native: 'ગુજરાતી' },
+  { code: 'kn-IN', label: 'Kannada', native: 'ಕನ್ನಡ' },
+  { code: 'ml-IN', label: 'Malayalam', native: 'മലയാളം' },
+  { code: 'pa-IN', label: 'Punjabi', native: 'ਪੰਜਾਬੀ' },
+  { code: 'or-IN', label: 'Odia', native: 'ଓଡ଼ିଆ' },
+  { code: 'as-IN', label: 'Assamese', native: 'অসমীয়া' },
+  { code: 'ur-IN', label: 'Urdu', native: 'اردو' },
+  { code: 'en-IN', label: 'English', native: 'English' },
+  { code: 'es-ES', label: 'Spanish', native: 'Español' },
+  { code: 'fr-FR', label: 'French', native: 'Français' },
+  { code: 'de-DE', label: 'German', native: 'Deutsch' },
+  { code: 'ja-JP', label: 'Japanese', native: '日本語' },
+  { code: 'zh-CN', label: 'Chinese', native: '中文' },
+  { code: 'ar-SA', label: 'Arabic', native: 'العربية' },
+  { code: 'pt-BR', label: 'Portuguese', native: 'Português' },
+]
 
 export default function MessageInput({ roomId }: { roomId: Id<'rooms'> }) {
-  const { user, isAuthenticated } = useCurrentUser()
-  const { isMobile } = useIsMobile()
+  const { user } = useCurrentUser()
   const [text, setText] = useState('')
   const [isRecording, setIsRecording] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+  
+  const selectedLang = LANGUAGES.find(l => l.code === user?.preferredLang) ?? LANGUAGES[12]
+  
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const sendMessage = useMutation(api.messages.sendMessage)
   const setTyping = useMutation(api.messages.setTyping)
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -23,18 +55,15 @@ export default function MessageInput({ roomId }: { roomId: Id<'rooms'> }) {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value)
     e.target.style.height = 'auto'
-    e.target.style.height = `${Math.min(e.target.scrollHeight, 140)}px`
-    if (!isAuthenticated) return
+    e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`
     setTyping({ roomId, isTyping: true }).catch(() => {})
     if (typingTimer.current) clearTimeout(typingTimer.current)
-    typingTimer.current = setTimeout(() => {
-      setTyping({ roomId, isTyping: false }).catch(() => {})
-    }, 2000)
+    typingTimer.current = setTimeout(() => setTyping({ roomId, isTyping: false }).catch(() => {}), 2000)
   }
 
   const handleSend = useCallback(async () => {
     const body = text.trim()
-    if (!body || !isAuthenticated || isSending) return
+    if (!body || isSending) return
     setIsSending(true)
     setText('')
     if (inputRef.current) inputRef.current.style.height = 'auto'
@@ -42,93 +71,83 @@ export default function MessageInput({ roomId }: { roomId: Id<'rooms'> }) {
     await setTyping({ roomId, isTyping: false }).catch(() => {})
     try {
       await sendMessage({ roomId, body })
-    } catch (err) {
-      console.error('Send failed:', err)
+    } catch {
       setText(body)
     } finally {
       setIsSending(false)
       inputRef.current?.focus()
     }
-  }, [text, isAuthenticated, isSending, roomId, sendMessage, setTyping])
+  }, [text, isSending, roomId, sendMessage, setTyping])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey && !isMobile) {
-      e.preventDefault()
-      handleSend()
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
   }
 
   return (
-    <div style={{ padding: isMobile ? '12px 12px' : '12px 20px', borderTop: '1px solid rgba(240,237,230,0.07)', flexShrink: 0 }}>
-      <SmartReplies
-        roomId={roomId}
+    <div style={{ padding: isMobile ? '0 16px 16px' : '0 40px 32px', flexShrink: 0, position: 'relative' }}>
+      <SmartReplies 
+        roomId={roomId} 
         onSelect={(reply: string) => {
           setText(reply)
-          requestAnimationFrame(() => {
-            if (!inputRef.current) return
-            inputRef.current.focus()
+          if (inputRef.current) {
             inputRef.current.style.height = 'auto'
-            inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 140)}px`
-          })
-        }}
+            inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`
+            inputRef.current.focus()
+          }
+        }} 
       />
+      {/* Main input box */}
+      <div style={{
+        background: 'var(--obsidian-surface)',
+        borderRadius: 16,
+        border: '1px solid var(--obsidian-border)',
+        overflow: 'hidden',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.4)',
+        transition: 'border-color 0.3s',
+      }}
+        onFocusCapture={e => e.currentTarget.style.borderColor = 'var(--obsidian-primary-alpha)'}
+        onBlurCapture={e => e.currentTarget.style.borderColor = 'var(--obsidian-border)'}
+      >
+        {/* Text area */}
+        <div style={{ padding: '16px 20px 8px' }}>
+            <textarea
+              ref={inputRef}
+              value={text}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Reply..."
+              disabled={isRecording || isSending}
+              rows={1}
+              style={{
+                width: '100%', background: 'none', border: 'none', outline: 'none',
+                color: 'var(--obsidian-text)', fontSize: 14, resize: 'none', lineHeight: 1.6,
+                fontFamily: 'Geist, sans-serif', minHeight: 28, maxHeight: 120,
+                overflowY: 'auto', boxSizing: 'border-box',
+              }}
+            />
+        </div>
 
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, background: '#111110', border: '1px solid rgba(240,237,230,0.1)', borderRadius: 10, padding: '8px 12px', transition: 'border-color 0.2s' }}>
-        <VoiceRecorder roomId={roomId} onRecordingChange={setIsRecording} />
+        {/* Bottom toolbar */}
+        <div style={{
+          display: 'flex', alignItems: 'center', padding: '8px 12px 12px',
+          gap: 4,
+        }}>
+          {/* Language Indicator */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '5px 8px',
+            color: 'var(--obsidian-text-faint)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.25em',
+            fontFamily: 'Geist, sans-serif', fontWeight: 500
+          }}>
+            <Languages size={12} strokeWidth={1.5} />
+            <span>{selectedLang.label}</span>
+          </div>
 
-        <textarea
-          ref={inputRef}
-          value={text}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          placeholder={isRecording ? 'Recording...' : 'Message this room...'}
-          disabled={isRecording || isSending}
-          rows={1}
-          style={{
-            flex: 1,
-            background: 'none',
-            border: 'none',
-            outline: 'none',
-            color: '#f0ede6',
-            fontSize: 16, // Better for iOS focus
-            resize: 'none',
-            lineHeight: 1.5,
-            fontFamily: 'var(--font-geist, sans-serif)',
-            minHeight: 24,
-            maxHeight: 140,
-            overflowY: 'auto',
-            paddingTop: 4,
-          }}
-        />
-
-        <button
-          onClick={handleSend}
-          disabled={!text.trim() || isSending}
-          style={{
-            width: isMobile ? 36 : 30,
-            height: isMobile ? 36 : 30,
-            borderRadius: 7,
-            border: 'none',
-            cursor: 'pointer',
-            background: text.trim() ? '#f0ede6' : 'rgba(240,237,230,0.08)',
-            color: text.trim() ? '#0c0c0b' : '#6b6960',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            transition: 'all 0.15s',
-            fontSize: 14,
-          }}
-        >
-          {isSending ? '...' : '↑'}
-        </button>
+          {/* Right side */}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <VoiceRecorder roomId={roomId} onRecordingChange={setIsRecording} />
+          </div>
+        </div>
       </div>
-
-      {!isMobile && (
-        <p style={{ fontSize: 11, color: '#6b6960', marginTop: 6, paddingLeft: 2 }}>
-          Enter to send · Shift+Enter for newline
-        </p>
-      )}
     </div>
   )
 }

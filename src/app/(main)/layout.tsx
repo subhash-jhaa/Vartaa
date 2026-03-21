@@ -1,99 +1,56 @@
 'use client'
-import { useState } from 'react'
-import Sidebar from '@/components/layout/Sidebar'
-import { useIsMobile } from '@/hooks/useIsMobile'
+import { ReactNode, useState, useEffect } from 'react'
+import RailNav from '@/components/layout/RailNav'
+import ChannelList from '@/components/layout/ChannelList'
+import { Menu, X } from 'lucide-react'
 
-export default function MainLayout({ 
-  children 
-}: { 
-  children: React.ReactNode 
-}) {
-  const { isMobile } = useIsMobile()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+export default function MainLayout({ children }: { children: ReactNode }) {
+  const [isMobile, setIsMobile] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      height: '100vh', 
-      background: '#0c0c0b', 
-      overflow: 'hidden',
-      position: 'relative',
-    }}>
-      
-      {/* Mobile overlay background */}
-      {isMobile && sidebarOpen && (
-        <div
-          onClick={() => setSidebarOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.6)',
-            zIndex: 40,
-          }}
-        />
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--obsidian-bg)', overflow: 'hidden', color: 'var(--obsidian-text)', fontFamily: 'Geist, sans-serif' }}>
+      {/* Desktop Sidebars */}
+      {!isMobile && (
+        <>
+          <RailNav />
+          <ChannelList />
+        </>
       )}
 
-      {/* Sidebar — hidden on mobile unless open */}
-      <div style={{
-        position: isMobile ? 'fixed' : 'relative',
-        left: isMobile ? (sidebarOpen ? 0 : '-100%') : 0,
-        top: 0,
-        height: '100%',
-        zIndex: isMobile ? 50 : 'auto',
-        transition: 'left 0.25s ease',
-        flexShrink: 0,
-      }}>
-        <Sidebar onClose={() => setSidebarOpen(false)} />
-      </div>
-
-      {/* Main content */}
-      <main style={{ 
-        flex: 1, 
-        overflow: 'hidden', 
-        display: 'flex', 
-        flexDirection: 'column',
-        minWidth: 0,
-      }}>
-        
-        {/* Mobile top bar */}
-        {isMobile && (
-          <div style={{
-            height: 52,
-            background: '#111110',
-            borderBottom: '1px solid rgba(240,237,230,0.07)',
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 16px',
-            gap: 12,
-            flexShrink: 0,
-          }}>
-            <button
-              onClick={() => setSidebarOpen(true)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#c8c5be',
-                cursor: 'pointer',
-                fontSize: 20,
-                padding: 4,
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              ☰
-            </button>
-            <span style={{ 
-              fontSize: 15, 
-              fontWeight: 500, 
-              color: '#f0ede6',
-              fontFamily: 'Georgia, serif',
-              fontStyle: 'italic',
-            }}>
-              Vartaa
-            </span>
+      {/* Mobile Drawer */}
+      {isMobile && isDrawerOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex' }}>
+          {/* Overlay */}
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={() => setIsDrawerOpen(false)} />
+          {/* Sidebars */}
+          <div style={{ position: 'relative', display: 'flex', height: '100%', boxShadow: '10px 0 30px rgba(0,0,0,0.5)', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', height: '100%' }}>
+              <RailNav />
+              <ChannelList />
+            </div>
           </div>
-        )}
+        </div>
+      )}
 
+      {/* Mobile Menu Toggle */}
+      {isMobile && !isDrawerOpen && (
+        <button onClick={() => setIsDrawerOpen(true)}
+          style={{ position: 'fixed', top: 32, left: 24, zIndex: 90, background: 'var(--obsidian-surface)', border: '1px solid var(--obsidian-border)', color: 'var(--obsidian-primary)', padding: '12px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', cursor: 'pointer', transition: 'transform 0.2s' }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <Menu size={20} />
+        </button>
+      )}
+
+      <main style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}>
         {children}
       </main>
     </div>

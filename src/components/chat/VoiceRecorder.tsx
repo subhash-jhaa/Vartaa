@@ -181,7 +181,12 @@ export default function VoiceRecorder({ roomId, onRecordingChange }: VoiceRecord
       onMouseEnter={(e) => { e.currentTarget.style.color = '#c8c5be'; e.currentTarget.style.background = 'rgba(240,237,230,0.03)' }}
       onMouseLeave={(e) => { e.currentTarget.style.color = '#6b6960'; e.currentTarget.style.background = 'none' }}
     >
-      🎤
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="9" y="2" width="6" height="12" rx="3" />
+        <path d="M5 10a7 7 0 0 0 14 0" />
+        <line x1="12" y1="19" x2="12" y2="22" />
+        <line x1="8" y1="22" x2="16" y2="22" />
+      </svg>
     </button>
   )
 }

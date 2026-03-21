@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useAction } from 'convex/react'
 import { api } from '@convex/_generated/api'
 import { Id } from '@convex/_generated/dataModel'
+import { Stars, RefreshCcw, X } from 'lucide-react'
 
 export default function AISummaryButton({ roomId }: { roomId: Id<'rooms'> }) {
   const [summary, setSummary] = useState<string | null>(null)
@@ -29,18 +30,32 @@ export default function AISummaryButton({ roomId }: { roomId: Id<'rooms'> }) {
       <button
         onClick={handleClick}
         disabled={loading}
-        style={{ fontSize: 12, color: '#c8c5be', background: 'rgba(240,237,230,0.05)', border: '1px solid rgba(240,237,230,0.1)', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+        style={{ fontSize: 11, color: 'var(--obsidian-primary)', background: 'var(--obsidian-surface-soft)', border: '1px solid var(--obsidian-primary-alpha)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600, transition: 'all 0.3s' }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--obsidian-surface)'; e.currentTarget.style.boxShadow = '0 0 12px var(--obsidian-primary-alpha)' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'var(--obsidian-surface-soft)'; e.currentTarget.style.boxShadow = 'none' }}
       >
-        {loading ? '...' : '✦ Catch me up'}
+        {loading ? (
+           <RefreshCcw size={12} className="animate-spin" />
+        ) : (
+          <>
+            <Stars size={14} strokeWidth={2.5} />
+            Catch me up
+          </>
+        )}
       </button>
 
       {open && summary && (
-        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, width: 320, background: '#111110', border: '1px solid rgba(240,237,230,0.13)', borderRadius: 10, padding: '14px 16px', zIndex: 50 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontSize: 11, color: '#c8c5be', fontWeight: 500 }}>✦ AI Summary</span>
-            <button onClick={() => { setOpen(false); setSummary(null) }} style={{ fontSize: 12, color: '#6b6960', background: 'none', border: 'none', cursor: 'pointer' }}>✕ Refresh</button>
+        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 12, width: 320, background: 'var(--obsidian-surface)', border: '1px solid var(--obsidian-border)', borderRadius: 12, padding: '20px', zIndex: 50, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Stars size={12} color="var(--obsidian-primary)" />
+              <span style={{ fontSize: 10, color: 'var(--obsidian-text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em' }}>AI Summary</span>
+            </div>
+            <button onClick={() => { setOpen(false); setSummary(null) }} style={{ color: 'var(--obsidian-text-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>
+               <X size={14} />
+            </button>
           </div>
-          <p style={{ fontSize: 13, color: '#c8c5be', lineHeight: 1.6, margin: 0 }}>{summary}</p>
+          <p style={{ fontSize: 13, color: 'var(--obsidian-text)', lineHeight: 1.7, margin: 0, opacity: 0.9, fontFamily: 'Geist, sans-serif' }}>{summary}</p>
         </div>
       )}
     </div>
