@@ -5,6 +5,7 @@ import { api } from '@convex/_generated/api'
 import { Doc } from '@convex/_generated/dataModel'
 import TranslationBadge from '@/components/features/TranslationBadge'
 import ReactionDisplay from '@/components/features/ReactionPicker'
+import LanguageInsight from '@/components/features/LanguageInsight'
 import VoicePlayer from './VoicePlayer'
 import { Pin, PinOff } from 'lucide-react'
 
