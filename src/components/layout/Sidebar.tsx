@@ -177,7 +177,13 @@ export default function Sidebar({ onClose }: SidebarProps) {
               </button>
             ))}
             <div style={{ height: 1, background: 'rgba(240,237,230,0.07)', margin: '4px 0' }} />
-            <button onClick={() => void signOut()} style={{ display: 'block', width: '100%', background: 'transparent', border: 'none', padding: '8px 10px', color: '#f87171', fontSize: '13px', cursor: 'pointer', textAlign: 'left', borderRadius: 4 }}>
+            <button 
+              onClick={async () => {
+                await signOut();
+                router.push('/');
+              }} 
+              style={{ display: 'block', width: '100%', background: 'transparent', border: 'none', padding: '8px 10px', color: '#f87171', fontSize: '13px', cursor: 'pointer', textAlign: 'left', borderRadius: 4 }}
+            >
               Sign out
             </button>
           </div>

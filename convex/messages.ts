@@ -302,9 +302,86 @@ export const updateTranscript = internalMutation({
   },
 });
 
+export const updateLanguageInsight = internalMutation({
+  args: {
+    messageId: v.id("messages"),
+    insight: v.string(),
+  },
+  handler: async (ctx, { messageId, insight }) => {
+    await ctx.db.patch(messageId, { languageInsight: insight })
+  }
+})
+
 export const getAudioUrl = query({
   args: { storageId: v.id("_storage") },
   handler: async (ctx, { storageId }) => {
     return await ctx.storage.getUrl(storageId);
   },
 });
+
+export const clearChat = mutation({
+  args: { roomId: v.id("rooms") },
+  handler: async (ctx, { roomId }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) throw new Error('Not authenticated')
+
+    const room = await ctx.db.get(roomId)
+    if (!room) throw new Error('Room not found')
+    const memberIds = room.memberIds as string[]
+    if (!memberIds.includes(userId)) throw new Error('Unauthorized')
+
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_room", q => q.eq("roomId", roomId))
+      .collect()
+
+    for (const msg of messages) {
+      const reactions = await ctx.db
+        .query("reactions")
+        .withIndex("by_message", q => q.eq("messageId", msg._id))
+        .collect()
+      for (const r of reactions) await ctx.db.delete(r._id)
+      await ctx.db.delete(msg._id)
+    }
+
+    await ctx.db.patch(roomId, {
+      lastMessagePreview: undefined,
+      lastMessageAt: undefined,
+    })
+  }
+})
+
+export const getReadReceipt = query({
+  args: { roomId: v.id("rooms") },
+  handler: async (ctx, { roomId }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) return null
+
+    const room = await ctx.db.get(roomId)
+    if (!room || room.type !== "direct") return null
+
+    const otherUserId = room.memberIds.find(id => id !== userId)
+    if (!otherUserId) return null
+
+    const receipt = await ctx.db
+      .query("readReceipts")
+      .withIndex("by_room_user", q =>
+        q.eq("roomId", roomId).eq("userId", otherUserId as any)
+      )
+      .unique()
+
+    if (!receipt) return null
+
+    const otherUser = await ctx.db.get(otherUserId as any)
+    if (!otherUser || "body" in otherUser) return null // Type check for users only
+
+    return {
+      lastReadMessageId: receipt.lastReadMessageId,
+      lastReadAt: receipt.lastReadAt,
+      otherUser: {
+        name: (otherUser as any).name ?? "Unknown",
+        avatarUrl: (otherUser as any).avatarUrl ?? null,
+      }
+    }
+  }
+})

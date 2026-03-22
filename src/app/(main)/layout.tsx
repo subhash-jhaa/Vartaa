@@ -7,6 +7,7 @@ import { Menu, X } from 'lucide-react'
 export default function MainLayout({ children }: { children: ReactNode }) {
   const [isMobile, setIsMobile] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [activeView, setActiveView] = useState<'rooms' | 'dms'>('rooms')
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024)
@@ -20,8 +21,8 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       {/* Desktop Sidebars */}
       {!isMobile && (
         <>
-          <RailNav />
-          <ChannelList />
+          <RailNav activeView={activeView} onViewChange={setActiveView} />
+          <ChannelList activeView={activeView} />
         </>
       )}
 
@@ -33,8 +34,8 @@ export default function MainLayout({ children }: { children: ReactNode }) {
           {/* Sidebars */}
           <div style={{ position: 'relative', display: 'flex', height: '100%', boxShadow: '10px 0 30px rgba(0,0,0,0.5)', overflow: 'hidden' }}>
             <div style={{ display: 'flex', height: '100%' }}>
-              <RailNav />
-              <ChannelList />
+              <RailNav activeView={activeView} onViewChange={setActiveView} />
+              <ChannelList activeView={activeView} />
             </div>
           </div>
         </div>

@@ -47,6 +47,16 @@ export const upsertUser = internalMutation({
   }
 })
 
+export const updateName = mutation({
+  args: { name: v.string() },
+  handler: async (ctx, { name }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) throw new Error('Not authenticated')
+    if (!name.trim()) throw new Error('Name cannot be empty')
+    await ctx.db.patch(userId, { name: name.trim() })
+  }
+})
+
 export const updatePreferredLang = mutation({
   args: { lang: v.string() },
   handler: async (ctx, { lang }) => {
@@ -62,6 +72,15 @@ export const updatePresence = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) return;
     await ctx.db.patch(userId, { presence, lastSeenAt: Date.now() });
+  }
+})
+
+export const setOnboardingComplete = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) return
+    await ctx.db.patch(userId, { hasCompletedOnboarding: true })
   }
 })
 
@@ -83,3 +102,23 @@ export const getUserByEmail = query({
     }
   }
 })
+
+export const getAllUsers = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const users = await ctx.db.query("users").collect();
+    return users
+      .filter((u) => u._id !== userId)
+      .map((u) => ({
+        _id: u._id,
+        name: u.name,
+        email: u.email,
+        image: u.image,
+        avatarUrl: u.avatarUrl,
+        presence: u.presence ?? "offline",
+      }));
+  },
+});

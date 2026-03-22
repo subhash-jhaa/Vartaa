@@ -10,6 +10,26 @@ export const textToSpeechAction = action({
   },
   handler: async (ctx, { text, languageCode, speaker = "meera" }): Promise<string | null> => {
     try {
+      const lowerText = text.toLowerCase()
+      let pace = 1.0
+      let temperature = 0.6
+
+      if (
+        lowerText.includes('!') || lowerText.includes('wow') ||
+        lowerText.includes('great') || lowerText.includes('happy') ||
+        lowerText.includes('amazing') || lowerText.includes('excited')
+      ) {
+        pace = 1.15
+        temperature = 0.8
+      } else if (
+        lowerText.includes('sorry') || lowerText.includes('sad') ||
+        lowerText.includes('please') || lowerText.includes('...') ||
+        text.length > 100
+      ) {
+        pace = 0.9
+        temperature = 0.5
+      }
+
       const res = await fetch("https://api.sarvam.ai/text-to-speech", {
         method: "POST",
         headers: {
@@ -20,10 +40,10 @@ export const textToSpeechAction = action({
           inputs: [text],
           target_language_code: languageCode,
           speaker,
-          model: "bulbul:v2",
+          model: "bulbul:v3",
           pitch: 0,
-          pace: 1.0,
-          loudness: 1.5,
+          pace,
+          temperature,
           enable_preprocessing: true,
         }),
       });
