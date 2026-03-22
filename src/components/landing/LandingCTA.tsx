@@ -10,7 +10,7 @@ export default function LandingCTA() {
   return (
     <div style={{ padding: isMobile ? '0 24px 60px' : '0 56px 88px' }}>
       <div style={{
-        border: '1px solid rgba(240,237,230,0.07)', borderRadius: 12,
+        border: '1px solid var(--color-cream-faint)', borderRadius: 12,
         padding: isMobile ? '48px 24px' : '64px 80px',
         display: 'flex', 
         flexDirection: isMobile ? 'column' : 'row',
@@ -22,7 +22,7 @@ export default function LandingCTA() {
         overflow: 'hidden',
       }}>
         {/* Top accent line */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(212,168,67,0.5), transparent)' }} />
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, var(--color-gold-alpha), transparent)' }} />
 
         <div>
           <h2 style={{ 
@@ -34,7 +34,7 @@ export default function LandingCTA() {
           }}>
             Start speaking<br />every language.
           </h2>
-          <p style={{ fontSize: 14, color: '#c8c5be' }}>Free forever for small teams. No credit card required.</p>
+          <p style={{ fontSize: 14, color: 'var(--color-text-warm)' }}>Free forever for small teams. No credit card required.</p>
         </div>
 
         <div style={{ 
@@ -57,11 +57,11 @@ export default function LandingCTA() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               style={{ 
-                background: 'rgba(240,237,230,0.04)', 
-                border: '1px solid rgba(240,237,230,0.07)', 
+                background: 'var(--color-cream-soft)', 
+                border: '1px solid var(--color-cream-faint)', 
                 borderRadius: 8, 
                 padding: '13px 18px', 
-                color: '#f0ede6', 
+                color: 'var(--color-cream)', 
                 fontSize: 14, 
                 outline: 'none', 
                 width: isMobile ? '100%' : 280, 
@@ -69,16 +69,16 @@ export default function LandingCTA() {
                 transition: 'border-color 0.15s',
                 boxSizing: 'border-box'
               }}
-              onFocus={e => e.currentTarget.style.borderColor = 'rgba(212,168,67,0.4)'}
-              onBlur={e => e.currentTarget.style.borderColor = 'rgba(240,237,230,0.07)'}
+              onFocus={e => e.currentTarget.style.borderColor = 'var(--color-gold-alpha-low)'}
+              onBlur={e => e.currentTarget.style.borderColor = 'var(--color-cream-faint)'}
             />
             <Link href="/sign-up" style={{ 
               padding: '13px 28px', 
               borderRadius: 8, 
               fontSize: 14, 
-              background: '#f0ede6', 
-              border: '1px solid #f0ede6', 
-              color: '#0c0c0b', 
+              background: 'var(--color-cream)', 
+              border: '1px solid var(--color-cream)', 
+              color: 'var(--color-ink)', 
               fontWeight: 500, 
               textDecoration: 'none', 
               whiteSpace: 'nowrap', 
@@ -88,13 +88,13 @@ export default function LandingCTA() {
               justifyContent: 'center',
               width: isMobile ? '100%' : 'auto'
             }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#d4a843'; e.currentTarget.style.borderColor = '#d4a843' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#f0ede6'; e.currentTarget.style.borderColor = '#f0ede6' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-gold)'; e.currentTarget.style.borderColor = 'var(--color-gold)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-cream)'; e.currentTarget.style.borderColor = 'var(--color-cream)' }}
             >Get early access</Link>
           </div>
           <span style={{ 
             fontSize: 11, 
-            color: '#6b6960',
+            color: 'var(--color-text-dim)',
             textAlign: isMobile ? 'center' : 'right'
           }}>No credit card required · Free for teams up to 10</span>
         </div>

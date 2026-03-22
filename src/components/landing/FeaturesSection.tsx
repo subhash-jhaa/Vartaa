@@ -19,9 +19,9 @@ export default function Features() {
       maxWidth: 1200, 
       margin: '0 auto' 
     }}>
-      <div style={{ fontSize: 11, letterSpacing: '3px', color: '#3a3835', textTransform: 'uppercase', marginBottom: 52, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ fontSize: 11, letterSpacing: '3px', color: 'var(--color-text-faint)', textTransform: 'uppercase', marginBottom: 52, display: 'flex', alignItems: 'center', gap: 12 }}>
         What you get
-        <div style={{ flex: 1, height: 1, background: 'rgba(240,237,230,0.07)' }} />
+        <div style={{ flex: 1, height: 1, background: 'var(--color-cream-hover)' }} />
       </div>
 
       <div style={{ 
@@ -36,17 +36,17 @@ export default function Features() {
           return (
             <div key={i} style={{
               padding: isMobile ? '24px 0' : '40px 32px',
-              borderRight: !isLastInRow ? '1px solid rgba(240,237,230,0.07)' : 'none',
-              borderBottom: !isLastRow ? '1px solid rgba(240,237,230,0.07)' : 'none',
+              borderRight: !isLastInRow ? '1px solid var(--color-cream-faint)' : 'none',
+              borderBottom: !isLastRow ? '1px solid var(--color-cream-faint)' : 'none',
               background: 'transparent',
               transition: 'background 0.2s',
             }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(240,237,230,0.01)'}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--color-cream-soft)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <div style={{ fontSize: 11, color: '#3a3835', letterSpacing: '2px', marginBottom: 20 }}>{f.n}</div>
-              <div style={{ fontSize: 19, fontFamily: 'Instrument Serif, serif', fontStyle: 'italic', color: '#f0ede6', marginBottom: 12, lineHeight: 1.25 }}>{f.t}</div>
-              <div style={{ fontSize: 13, color: '#6b6960', lineHeight: 1.75, fontWeight: 300 }}>{f.d}</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-faint)', letterSpacing: '2px', marginBottom: 20 }}>{f.n}</div>
+              <div style={{ fontSize: 19, fontFamily: 'Instrument Serif, serif', fontStyle: 'italic', color: 'var(--color-text-bright)', marginBottom: 12, lineHeight: 1.25 }}>{f.t}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-dim)', lineHeight: 1.75, fontWeight: 300 }}>{f.d}</div>
             </div>
           )
         })}
