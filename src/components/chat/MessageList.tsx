@@ -6,7 +6,19 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MessageItem from './MessageItem'
 import { useEffect, useRef, useState } from 'react'
 
-export default function MessageList({ roomId }: { roomId: Id<'rooms'> }) {
+import SeenReceipt from './SeenReceipt'
+
+export default function MessageList({ 
+  roomId, 
+  isDirect, 
+  readReceipt, 
+  myId 
+}: { 
+  roomId: Id<'rooms'>,
+  isDirect?: boolean,
+  readReceipt?: any,
+  myId?: string
+}) {
   const { user } = useCurrentUser()
   const messages = useQuery(api.messages.getMessages, { roomId, limit: 50 })
   const typingUsers = useQuery(api.messages.getTypingUsers, { roomId })
@@ -42,7 +54,12 @@ export default function MessageList({ roomId }: { roomId: Id<'rooms'> }) {
         const prevMsg = messages[idx - 1]
         const showAvatar = !prevMsg || prevMsg.senderId !== msg.senderId || (msg.createdAt - prevMsg.createdAt) > 5 * 60 * 1000
         return (
-          <MessageItem key={msg._id} message={msg} isOwn={msg.senderId === user?._id} showAvatar={showAvatar} userPreferredLang={user?.preferredLang ?? 'en-IN'} />
+          <div key={msg._id} style={{ display: 'flex', flexDirection: 'column' }}>
+            <MessageItem message={msg} isOwn={msg.senderId === user?._id} showAvatar={showAvatar} userPreferredLang={user?.preferredLang ?? 'en-IN'} />
+            {isDirect && readReceipt && msg._id === readReceipt.lastReadMessageId && msg.senderId === myId && (
+              <SeenReceipt otherUser={readReceipt.otherUser} lastReadAt={readReceipt.lastReadAt} />
+            )}
+          </div>
         )
       })}
 

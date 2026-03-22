@@ -74,6 +74,35 @@ export const translateMessageAction = internalAction({
         translations,
         originalLang,
       });
+
+      try {
+        const insightPrompt = `Original language: ${originalLang}
+Text: "${text}"
+Give ONE language learning tip (max 15 words) about this text —
+a grammar pattern, cultural nuance, idiom meaning, or word origin.
+Reply with ONLY the tip. No labels, no explanation.`
+
+        const insightRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: insightPrompt }] }]
+            }),
+          }
+        )
+        const insightData = await insightRes.json()
+        const tip = insightData.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+        if (tip) {
+          await ctx.runMutation(internal.messages.updateLanguageInsight, {
+            messageId,
+            insight: tip,
+          })
+        }
+      } catch (err) {
+        console.error("Language insight failed:", err)
+      }
     } catch (err) {
       console.error("Translation action failed:", err);
       await ctx.runMutation(internal.messages.updateTranslations, {

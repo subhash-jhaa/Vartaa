@@ -65,6 +65,15 @@ export const updatePresence = mutation({
   }
 })
 
+export const setOnboardingComplete = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) return
+    await ctx.db.patch(userId, { hasCompletedOnboarding: true })
+  }
+})
+
 export const getUserByEmail = query({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {
@@ -83,3 +92,23 @@ export const getUserByEmail = query({
     }
   }
 })
+
+export const getAllUsers = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const users = await ctx.db.query("users").collect();
+    return users
+      .filter((u) => u._id !== userId)
+      .map((u) => ({
+        _id: u._id,
+        name: u.name,
+        email: u.email,
+        image: u.image,
+        avatarUrl: u.avatarUrl,
+        presence: u.presence ?? "offline",
+      }));
+  },
+});

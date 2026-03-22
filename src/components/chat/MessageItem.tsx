@@ -118,13 +118,19 @@ export default function MessageItem({ message, isOwn, showAvatar, userPreferredL
         ) : message.type === 'voice' ? (
           <VoicePlayer message={message} userPreferredLang={userPreferredLang} />
         ) : (
-          <div style={{ background: 'var(--obsidian-surface)', border: '1px solid var(--obsidian-border)', borderRadius: 16, padding: '12px 16px', boxShadow: '0 2px 16px rgba(0,0,0,0.4)', maxWidth: 400 }}>
+          <div className="message-bubble-group" style={{ background: 'var(--obsidian-surface)', border: '1px solid var(--obsidian-border)', borderRadius: 16, padding: '12px 16px', boxShadow: '0 2px 16px rgba(0,0,0,0.4)', maxWidth: 400, position: 'relative' }}>
             <p style={{ fontSize: 14, color: 'var(--obsidian-text)', lineHeight: 1.6, margin: 0, wordBreak: 'break-word', fontFamily: 'Geist, sans-serif' }}>{displayText}</p>
             {hasTranslation && (
               <div style={{ paddingLeft: 24, borderLeft: '1px solid var(--obsidian-border)', marginTop: 16 }}>
                 <p style={{ fontSize: 13, color: 'var(--obsidian-text-muted)', fontStyle: 'italic', lineHeight: 1.6, margin: 0 }}>{showOriginal ? message.body : translatedText}</p>
                 <TranslationBadge originalLang={message.originalLang ?? ''} showingOriginal={showOriginal} onToggle={() => setShowOriginal(v => !v)} />
               </div>
+            )}
+            {message.languageInsight && !message.isDeleted && (
+              <LanguageInsight
+                insight={message.languageInsight}
+                isOwn={isOwn}
+              />
             )}
           </div>
         )}

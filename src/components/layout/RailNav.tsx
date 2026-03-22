@@ -5,11 +5,33 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { LayoutGrid, MessageCircle, Settings } from 'lucide-react'
 import Link from 'next/link'
 
-export default function RailNav() {
+type RailView = 'rooms' | 'dms'
+
+interface RailNavProps {
+  activeView: RailView
+  onViewChange: (view: RailView) => void
+}
+
+export default function RailNav({ activeView, onViewChange }: RailNavProps) {
   const { signOut } = useAuthActions()
   const router = useRouter()
   const pathname = usePathname()
   const { user } = useCurrentUser()
+
+  const buttonStyle = (isActive: boolean) => ({
+    background: isActive ? 'rgba(201,168,76,0.1)' : 'transparent',
+    border: isActive ? '1px solid rgba(201,168,76,0.15)' : '1px solid transparent',
+    borderRadius: 8,
+    width: 36,
+    height: 36,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    color: isActive ? 'var(--obsidian-primary)' : '#333',
+    transition: 'all 0.3s',
+    padding: 0
+  })
 
   return (
     <aside style={{
@@ -33,13 +55,19 @@ export default function RailNav() {
         </Link>
       </div>
 
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 36, flex: 1 }}>
-        <button onClick={() => router.push('/dashboard')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: pathname === '/dashboard' ? 'var(--obsidian-primary)' : 'var(--obsidian-text-faint)', transition: 'color 0.3s', padding: 0 }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 24, flex: 1 }}>
+        <button 
+          onClick={() => onViewChange('rooms')}
+          style={buttonStyle(activeView === 'rooms')}
+          title="Rooms"
+        >
           <LayoutGrid size={18} strokeWidth={1.5} />
         </button>
-        <button onClick={() => router.push('/chat')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: pathname.startsWith('/chat') ? 'var(--obsidian-primary)' : 'var(--obsidian-text-faint)', transition: 'color 0.3s', padding: 0 }}>
+        <button 
+          onClick={() => onViewChange('dms')}
+          style={buttonStyle(activeView === 'dms')}
+          title="Direct Messages"
+        >
           <MessageCircle size={18} strokeWidth={1.5} />
         </button>
       </nav>

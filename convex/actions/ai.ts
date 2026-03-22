@@ -100,6 +100,40 @@ No explanation. Just the JSON.`;
   },
 });
 
+export const generateContextualReply = action({
+  args: {
+    recentMessages: v.array(v.object({
+      content: v.string(),
+      isFromMe: v.boolean(),
+      senderName: v.optional(v.string()),
+    })),
+    userLang: v.string(),
+  },
+  handler: async (_ctx, { recentMessages, userLang }) => {
+    const langNames: Record<string, string> = {
+      'en-IN': 'English', 'hi-IN': 'Hindi', 'bn-IN': 'Bengali',
+      'ta-IN': 'Tamil', 'te-IN': 'Telugu', 'mr-IN': 'Marathi',
+      'gu-IN': 'Gujarati', 'kn-IN': 'Kannada', 'ml-IN': 'Malayalam',
+      'pa-IN': 'Punjabi', 'ja-JP': 'Japanese', 'es-ES': 'Spanish',
+      'fr-FR': 'French', 'de-DE': 'German',
+    }
+    const langName = langNames[userLang] || 'English'
+    const context = recentMessages
+      .slice(-6)
+      .map(m => `${m.isFromMe ? 'Me' : (m.senderName || 'Other')}: ${m.content}`)
+      .join('\n')
+    const prompt = `You are a smart chat assistant. Based on this 
+conversation, write a natural friendly reply in ${langName}. 
+Output ONLY the reply — no quotes, no labels. Max 2 sentences.
+
+Conversation:
+${context}
+
+Reply in ${langName}:`
+    return await callGemini(prompt)
+  }
+})
+
 export const checkTone = action({
   args: { message: v.string() },
   handler: async (ctx, { message }): Promise<{ flagged: boolean; reason: string; suggestion: string }> => {

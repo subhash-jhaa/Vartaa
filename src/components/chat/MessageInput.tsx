@@ -1,12 +1,29 @@
 'use client'
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { useMutation } from 'convex/react'
+import { useMutation, useAction } from 'convex/react'
 import { api } from '@convex/_generated/api'
 import { Id } from '@convex/_generated/dataModel'
 import VoiceRecorder from './VoiceRecorder'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { Mic, Languages } from 'lucide-react'
+import { Mic, Languages, Puzzle, PenLine, Loader2 } from 'lucide-react'
 import SmartReplies from '@/components/features/SmartReplies'
+
+const SURPRISE_MESSAGES: Record<string, string[]> = {
+  'en-IN': ["Hey! How's your day going? 😊", "What's up! Hope you're having a great time! ✨", "Hi there! Anything fun happening today? 🎉"],
+  'hi-IN': ["अरे! कैसे हो? 😊", "नमस्ते! आज कैसा दिन चल रहा है? ✨", "क्या हाल है दोस्त? 🎉"],
+  'bn-IN': ["হ্যালো! কেমন আছো? 😊", "কী খবর? ✨", "আজ কেমন দিন? 🎉"],
+  'ta-IN': ["வணக்கம்! எப்படி இருக்கீங்க? 😊", "என்ன விசேஷம்? ✨", "நல்லா இருக்கீங்களா? 🎉"],
+  'te-IN': ["హాయ్! ఎలా ఉన్నారు? 😊", "ఏంటి విశేషం? ✨", "బాగున్నారా? 🎉"],
+  'mr-IN': ["नमस्कार! कसे आहात? 😊", "काय चाललंय? ✨", "मजेत आहात ना? 🎉"],
+  'gu-IN': ["હેલો! કેમ છો? 😊", "શું ચાલે છે? ✨", "મજામાં છો? 🎉"],
+  'kn-IN': ["ಹಾಯ್! ಹೇಗಿದ್ದೀರಾ? 😊", "ಏನು ವಿಶೇಷ? ✨", "ಚೆನ್ನಾಗಿದ್ದೀರಾ? 🎉"],
+  'ml-IN': ["ഹായ്! എങ്ങനെ ഉണ്ട്? 😊", "എന്താ വിശേഷം? ✨", "സുഖമാണോ? 🎉"],
+  'pa-IN': ["ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਕਿਵੇਂ ਹੋ? 😊", "ਕੀ ਹਾਲ ਹੈ? ✨", "ਮਜ਼ੇ ਵਿੱਚ ਹੋ? 🎉"],
+  'ja-JP': ["やあ！元気？😊", "こんにちは！調子どう？✨", "今日はいい日？🎉"],
+  'es-ES': ["¡Hola! ¿Cómo estás? 😊", "¿Qué tal? ✨", "¡Saludos! 🎉"],
+  'fr-FR': ["Salut ! Comment ça va ? 😊", "Coucou ! Quoi de neuf ? ✨", "Hello ! 🎉"],
+  'de-DE': ["Hallo! Wie geht's? 😊", "Hey! Was gibt's? ✨", "Na, alles klar? 🎉"],
+}
 
 const LANGUAGES = [
   { code: 'hi-IN', label: 'Hindi', native: 'हिंदी' },
@@ -31,12 +48,21 @@ const LANGUAGES = [
   { code: 'pt-BR', label: 'Portuguese', native: 'Português' },
 ]
 
-export default function MessageInput({ roomId }: { roomId: Id<'rooms'> }) {
+export default function MessageInput({ 
+  roomId, 
+  userPreferredLang, 
+  recentMessages 
+}: { 
+  roomId: Id<'rooms'>,
+  userPreferredLang: string,
+  recentMessages: { content: string; isFromMe: boolean; senderName?: string }[]
+}) {
   const { user } = useCurrentUser()
   const [text, setText] = useState('')
   const [isRecording, setIsRecording] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [isAiLoading, setIsAiLoading] = useState(false)
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024)
@@ -50,7 +76,41 @@ export default function MessageInput({ roomId }: { roomId: Id<'rooms'> }) {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const sendMessage = useMutation(api.messages.sendMessage)
   const setTyping = useMutation(api.messages.setTyping)
+  const generateReply = useAction(api.actions.ai.generateContextualReply)
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleSurprise = () => {
+    const list = SURPRISE_MESSAGES[userPreferredLang] || SURPRISE_MESSAGES['en-IN']
+    const random = list[Math.floor(Math.random() * list.length)]
+    setText(random)
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.style.height = 'auto'
+        inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`
+        inputRef.current.focus()
+      }
+    }, 0)
+  }
+
+  const handleAiReply = async () => {
+    if (recentMessages.length === 0 || isAiLoading) return
+    setIsAiLoading(true)
+    try {
+      const reply = await generateReply({ recentMessages, userLang: userPreferredLang })
+      setText(reply)
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.style.height = 'auto'
+          inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`
+          inputRef.current.focus()
+        }
+      }, 0)
+    } catch (err) {
+      console.error('AI Reply failed:', err)
+    } finally {
+      setIsAiLoading(false)
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value)
@@ -109,14 +169,26 @@ export default function MessageInput({ roomId }: { roomId: Id<'rooms'> }) {
         onBlurCapture={e => e.currentTarget.style.borderColor = 'var(--obsidian-border)'}
       >
         {/* Text area */}
-        <div style={{ padding: '16px 20px 8px' }}>
+        <div style={{ padding: '16px 20px 8px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <button
+              onClick={handleSurprise}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 4,
+                color: 'var(--obsidian-text-faint)', transition: 'color 0.2s'
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--obsidian-text-muted)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--obsidian-text-faint)'}
+              title="Surprise Message"
+            >
+              <Puzzle size={18} strokeWidth={1.5} />
+            </button>
             <textarea
               ref={inputRef}
               value={text}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
               placeholder="Reply..."
-              disabled={isRecording || isSending}
+              disabled={isRecording || isSending || isAiLoading}
               rows={1}
               style={{
                 width: '100%', background: 'none', border: 'none', outline: 'none',
@@ -143,7 +215,38 @@ export default function MessageInput({ roomId }: { roomId: Id<'rooms'> }) {
           </div>
 
           {/* Right side */}
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
+            {recentMessages.length > 0 && (
+              <button
+                onClick={handleAiReply}
+                disabled={isAiLoading}
+                style={{
+                  background: 'rgba(139,92,246,0.1)',
+                  border: '1px solid rgba(139,92,246,0.2)',
+                  borderRadius: 8,
+                  padding: '6px 10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  color: '#a78bfa',
+                  fontSize: 10,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  cursor: isAiLoading ? 'default' : 'pointer',
+                  transition: 'background 0.2s',
+                  fontFamily: 'Geist, sans-serif',
+                }}
+                onMouseEnter={e => !isAiLoading && (e.currentTarget.style.background = 'rgba(139,92,246,0.15)')}
+                onMouseLeave={e => !isAiLoading && (e.currentTarget.style.background = 'rgba(139,92,246,0.1)')}
+              >
+                {isAiLoading ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <PenLine size={12} strokeWidth={2} />
+                )}
+                <span>AI Reply</span>
+              </button>
+            )}
             <VoiceRecorder roomId={roomId} onRecordingChange={setIsRecording} />
           </div>
         </div>
