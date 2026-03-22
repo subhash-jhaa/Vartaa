@@ -34,27 +34,7 @@ export default function NewDMButton({ isOpen, setIsOpen }: NewDMButtonProps) {
   }
 
   if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: 'var(--obsidian-text-muted)',
-          cursor: 'pointer',
-          padding: '4px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'color 0.2s',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--obsidian-text)')}
-        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--obsidian-text-muted)')}
-        title="New Direct Message"
-      >
-        <SquarePen size={18} />
-      </button>
-    )
+    return null
   }
 
   return (

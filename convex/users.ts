@@ -47,6 +47,16 @@ export const upsertUser = internalMutation({
   }
 })
 
+export const updateName = mutation({
+  args: { name: v.string() },
+  handler: async (ctx, { name }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) throw new Error('Not authenticated')
+    if (!name.trim()) throw new Error('Name cannot be empty')
+    await ctx.db.patch(userId, { name: name.trim() })
+  }
+})
+
 export const updatePreferredLang = mutation({
   args: { lang: v.string() },
   handler: async (ctx, { lang }) => {

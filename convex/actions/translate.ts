@@ -18,6 +18,10 @@ async function detectLanguage(text: string): Promise<string> {
 
 async function translateText(text: string, sourceLang: string, targetLang: string): Promise<string> {
   if (sourceLang === targetLang) return text;
+  
+  // Sarvam supports 22 Indian languages. If target is foreign, we might need a fallback or different provider.
+  // For now, let's assume Sarvam handles what's in our shared list or we log it.
+  
   const res = await fetch("https://api.sarvam.ai/translate", {
     method: "POST",
     headers: {

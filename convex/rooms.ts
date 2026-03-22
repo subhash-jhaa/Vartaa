@@ -147,10 +147,10 @@ export const getRoom = query({
     if (!userId) return null;
 
     const room = await ctx.db.get(roomId);
-    if (!room) throw new Error("Room not found");
+    if (!room) return null;
     
     // Simple membership check using the array on the room document
-    if (!room.memberIds.includes(userId)) throw new Error("Not a member of this room");
+    if (!room.memberIds.includes(userId)) return null;
     
     return room;
   },

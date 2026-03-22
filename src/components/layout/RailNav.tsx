@@ -2,7 +2,7 @@
 import { useAuthActions } from '@convex-dev/auth/react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { LayoutGrid, MessageCircle, Settings } from 'lucide-react'
+import { LayoutGrid, MessageCircle, Settings, Users } from 'lucide-react'
 import Link from 'next/link'
 
 type RailView = 'rooms' | 'dms'
@@ -61,7 +61,7 @@ export default function RailNav({ activeView, onViewChange }: RailNavProps) {
           style={buttonStyle(activeView === 'rooms')}
           title="Rooms"
         >
-          <LayoutGrid size={18} strokeWidth={1.5} />
+          <Users size={18} strokeWidth={1.5} />
         </button>
         <button 
           onClick={() => onViewChange('dms')}
@@ -73,11 +73,18 @@ export default function RailNav({ activeView, onViewChange }: RailNavProps) {
       </nav>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 36, alignItems: 'center' }}>
-        <button onClick={() => signOut()}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--obsidian-text-faint)', transition: 'color 0.3s', padding: 0 }}
-          title="Sign out">
-          <Settings size={18} strokeWidth={1.5} />
-        </button>
+        <Link href="/settings" style={{ textDecoration: 'none' }}>
+          <button 
+            style={{ 
+              background: 'none', border: 'none', cursor: 'pointer', 
+              color: pathname === '/settings' ? 'var(--obsidian-primary)' : 'var(--obsidian-text-faint)', 
+              transition: 'color 0.3s', padding: 0 
+            }}
+            title="Settings"
+          >
+            <Settings size={18} strokeWidth={1.5} />
+          </button>
+        </Link>
         {user?.image ? (
           <img src={user.image} alt={user.name ?? 'User'}
             style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.05)', filter: 'grayscale(1)', cursor: 'pointer', transition: 'filter 0.7s' }}

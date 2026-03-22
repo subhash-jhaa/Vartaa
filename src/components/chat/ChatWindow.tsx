@@ -11,9 +11,13 @@ import RoomMembersPanel from '@/components/room/RoomMembersPanel'
 import DropdownMenu from '@/components/ui/DropdownMenu'
 import { useState, useEffect, useRef } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { Users, Lightbulb, CheckSquare, RefreshCcw, Trash2, UserPlus, Copy, Stars, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useAuthActions } from '@convex-dev/auth/react'
+import { Users, Lightbulb, CheckSquare, RefreshCcw, Trash2, UserPlus, Copy, Stars, X, LogOut, Archive } from 'lucide-react'
 
 export default function ChatWindow({ roomId }: { roomId: Id<'rooms'> }) {
+  const { signOut } = useAuthActions()
+  const router = useRouter()
   const { user: currentUser } = useCurrentUser()
   const hasRoomId = typeof roomId === 'string' && roomId.length > 0
   const room = useQuery(api.rooms.getRoom, hasRoomId ? { roomId } : 'skip')
@@ -28,6 +32,19 @@ export default function ChatWindow({ roomId }: { roomId: Id<'rooms'> }) {
     isDirect ? { roomId } : "skip"
   )
   const myId = currentUser?._id
+
+  // For DMs, find the other person's name
+  const otherUserId = room?.type === "direct" 
+    ? room.memberIds.find(id => id !== myId) 
+    : null
+  const otherUsers = useQuery(
+    api.users.getUsersByIds,
+    otherUserId ? { userIds: [otherUserId] } : "skip"
+  )
+  const otherUser = otherUsers?.[0]
+  const displayName = room?.type === "direct" 
+    ? (otherUser?.name || "Direct Message") 
+    : room?.name
 
   useEffect(() => {
     if (!isDirect || !messages?.length || !myId) return
@@ -51,7 +68,7 @@ export default function ChatWindow({ roomId }: { roomId: Id<'rooms'> }) {
   const [activeTab, setActiveTab] = useState<'live' | 'archive'>('live')
   const [isMobile, setIsMobile] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  const [showInsight, setShowInsight] = useState(!isMobile)
+  const [showInsight, setShowInsight] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [isClearing, setIsClearing] = useState(false)
   const confirmRef = useRef<HTMLDivElement>(null)
@@ -125,6 +142,14 @@ export default function ChatWindow({ roomId }: { roomId: Id<'rooms'> }) {
       }
     },
     {
+      label: 'Archive',
+      icon: <Archive size={14} />,
+      onClick: () => {
+        setActiveTab('archive')
+        setMenuOpen(false)
+      }
+    },
+    {
       label: 'Catch me up',
       icon: <Stars size={14} />,
       onClick: () => {
@@ -179,19 +204,24 @@ export default function ChatWindow({ roomId }: { roomId: Id<'rooms'> }) {
   return (
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden', background: 'var(--obsidian-bg)' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <header style={{ height: isMobile ? 80 : 96, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: `0 ${isMobile ? 16 : 64}px`, paddingLeft: isMobile ? 80 : 64, borderBottom: '1px solid var(--obsidian-border)', flexShrink: 0, background: 'var(--obsidian-bg)', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 16 : 48 }}>
-            <h1 style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'var(--obsidian-text-muted)', fontWeight: 500, margin: 0 }}>#{room.name}</h1>
-            <div style={{ display: 'flex', gap: isMobile ? 16 : 32 }}>
-              {(['live', 'archive'] as const).map(tab => (
-                <button key={tab} onClick={() => setActiveTab(tab)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.25em', color: activeTab === tab ? 'var(--obsidian-primary)' : 'var(--obsidian-text-faint)', fontWeight: activeTab === tab ? 700 : 400, transition: 'color 0.3s' }}>
-                  {isMobile ? tab[0].toUpperCase() : tab}
-                </button>
-              ))}
+        <header style={{ height: isMobile ? 80 : 96, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: `0 ${isMobile ? 12 : 64}px`, paddingLeft: isMobile ? 70 : 64, borderBottom: '1px solid var(--obsidian-border)', flexShrink: 0, background: 'var(--obsidian-bg)', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 48 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {room?.type === 'group' && <Users size={12} color="var(--obsidian-text-muted)" />}
+              <h1 style={{ fontSize: isMobile ? 12 : 13, textTransform: room?.type === 'direct' ? 'none' : 'uppercase', letterSpacing: room?.type === 'direct' ? 'normal' : '0.2em', color: 'var(--obsidian-text)', fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: isMobile ? 80 : 'none' }}>
+                {displayName}
+              </h1>
             </div>
+            {activeTab === 'archive' && (
+              <button 
+                onClick={() => setActiveTab('live')}
+                style={{ background: 'rgba(229,192,123,0.1)', border: '1px solid var(--obsidian-primary-alpha)', cursor: 'pointer', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--obsidian-primary)', padding: '4px 8px', borderRadius: 4, display: 'flex', alignItems: 'center', gap: 6 }}
+              >
+                Archive Mode <span style={{ opacity: 0.6 }}>✕</span>
+              </button>
+            )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 32 }}>
             <div style={{ position: 'relative' }}>
               <button 
                 onClick={() => setMenuOpen(!menuOpen)}
@@ -307,11 +337,13 @@ export default function ChatWindow({ roomId }: { roomId: Id<'rooms'> }) {
           readReceipt={readReceipt} 
           myId={myId} 
         />
-        <MessageInput 
-          roomId={roomId} 
-          userPreferredLang={currentUser?.preferredLang || 'en-IN'}
-          recentMessages={recentMessages}
-        />
+        <div style={{ paddingBottom: 20 }}>
+          <MessageInput 
+            roomId={roomId} 
+            userPreferredLang={currentUser?.preferredLang || 'en-IN'}
+            recentMessages={recentMessages}
+          />
+        </div>
       </div>
 
       {showMembers && currentUser && (
@@ -328,23 +360,6 @@ export default function ChatWindow({ roomId }: { roomId: Id<'rooms'> }) {
              <button onClick={() => setShowTasks(false)} style={{ background: 'none', border: 'none', color: 'var(--obsidian-text-muted)', cursor: 'pointer' }}>×</button>
           </div>
           <RoomTasksPanel roomId={roomId} />
-        </div>
-      )}
-
-      {!isMobile && showInsight && (
-        <div style={{ width: 320, borderLeft: '1px solid var(--obsidian-border)', display: 'flex', flexDirection: 'column', padding: '96px 40px 0', background: 'rgba(0,0,0,0.4)', flexShrink: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', position: 'absolute', top: 32, right: 32 }}>
-            <button onClick={() => setShowInsight(false)} style={{ background: 'none', border: 'none', color: 'var(--obsidian-text-muted)', cursor: 'pointer' }}>×</button>
-          </div>
-          <h3 style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontStyle: 'italic', fontSize: 24, color: 'var(--obsidian-text)', letterSpacing: '-0.02em', marginBottom: 64, marginTop: 0, opacity: 0.7 }}>Insight</h3>
-          <div style={{ marginBottom: 80 }}>
-            <span style={{ display: 'block', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.25em', color: 'var(--obsidian-text-muted)', fontWeight: 700, marginBottom: 24 }}>The Thread</span>
-            <AISummaryButton roomId={roomId} />
-          </div>
-          <div style={{ marginTop: 'auto', paddingBottom: 48, paddingTop: 40, borderTop: '1px solid var(--obsidian-border)' }}>
-            <span style={{ display: 'block', fontFamily: 'Instrument Serif, Georgia, serif', fontSize: 48, color: 'var(--obsidian-primary)', marginBottom: 8, fontWeight: 300, opacity: 0.4 }}>22</span>
-            <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.25em', color: '#2a2a2a', fontWeight: 500 }}>Linguistic Bridges Built</span>
-          </div>
         </div>
       )}
     </div>

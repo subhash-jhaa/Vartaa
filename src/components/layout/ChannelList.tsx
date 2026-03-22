@@ -6,8 +6,9 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import NewDMButton from './NewDMButton'
+import LanguageSettings from '@/components/features/LanguageSettings'
 
-import { Search, User, Grid, Plus, SquarePen } from 'lucide-react'
+import { Search, User, Grid, Plus, SquarePen, LayoutGrid, MessageSquare, UserRound, Users } from 'lucide-react'
 
 interface ChannelListProps {
   activeView: 'rooms' | 'dms'
@@ -23,18 +24,18 @@ export default function ChannelList({ activeView }: ChannelListProps) {
   const [showNew, setShowNew] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [showPicker, setShowPicker] = useState(false)
+  const [showLangSettings, setShowLangSettings] = useState(false)
 
   const groupRooms = rooms?.filter(r => r.type === 'group') ?? []
   const dmRooms = rooms?.filter(r => r.type === 'direct') ?? []
   
-  const filteredDms = dmRooms.filter(room => {
-    if (!searchQuery) return true
-    return true 
-  })
-
   const handleCreate = async () => {
     if (!newRoomName.trim()) return
-    const roomId = await createRoom({ name: newRoomName.trim(), type: 'group', memberIds: [] })
+    const roomId = await createRoom({ 
+      name: newRoomName.trim(), 
+      type: 'group', 
+      memberIds: user?._id ? [user._id] : [] 
+    })
     setNewRoomName('')
     setShowNew(false)
     router.push(`/chat/${roomId}`)
@@ -45,95 +46,70 @@ export default function ChannelList({ activeView }: ChannelListProps) {
       width: 256, height: '100vh', background: 'var(--obsidian-surface-soft)',
       borderRight: '1px solid var(--obsidian-border)',
       display: 'flex', flexDirection: 'column',
-      paddingTop: 32, paddingLeft: 32, paddingRight: 32,
+      paddingTop: 48, paddingLeft: 32, paddingRight: 32,
       flexShrink: 0, boxSizing: 'border-box',
       position: 'relative'
     }}>
       <Link href="/" style={{ textDecoration: 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 64 }}>
-          <span style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontStyle: 'italic', fontSize: 20, color: 'var(--obsidian-primary)' }}>वार्ता</span>
-          <span style={{ width: 1, height: 16, background: 'var(--obsidian-primary-alpha)', display: 'inline-block' }} />
-          <span style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontStyle: 'italic', fontSize: 18, color: 'var(--obsidian-text)', opacity: 0.85 }}>Vartaa</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
+          <span style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontStyle: 'italic', fontSize: 24, color: 'var(--obsidian-primary)', lineHeight: 1 }}>वार्ता</span>
+          <span style={{ width: 1, height: 18, background: 'rgba(255,255,255,0.1)', display: 'inline-block' }} />
+          <span style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontStyle: 'italic', fontSize: 18, color: 'var(--obsidian-text)', opacity: 0.85, lineHeight: 1 }}>Vartaa</span>
         </div>
       </Link>
 
-      {/* DYNAMIC HEADER */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '14px 0 10px',
-        borderBottom: '1px solid #141414',
-        marginBottom: 24,
-      }}>
+      {/* DYNAMIC HEADER BOX */}
+      <div style={{ padding: '2px 0', borderBottom: '1px solid #141414', flexShrink: 0, marginBottom: 12, marginLeft: -32, marginRight: -32 }}>
         <div style={{
-          fontSize: '13px',
-          fontWeight: 500,
-          color: 'var(--obsidian-text)',
-          letterSpacing: '-0.01em',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          {activeView === 'rooms' ? <Grid size={14} /> : <User size={14} />}
-          {activeView === 'rooms' ? 'Rooms' : 'Messages'}
-        </div>
-        
-        {activeView === 'rooms' ? (
-          <button 
-            onClick={() => setShowNew(v => !v)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '5px 10px',
-              background: '#111',
-              border: '1px solid #1e1e1e',
-              borderRadius: '7px',
-              fontSize: '11px',
-              color: 'var(--obsidian-text-muted)',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-            }}
-            className="header-action-btn"
-          >
-            <Plus size={13} />
-            <span>New Room</span>
-          </button>
-        ) : (
-          <NewDMButton 
-            isOpen={showPicker} 
-            setIsOpen={setShowPicker} 
-            customTrigger={
-              <button 
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '5px 10px',
-                  background: '#111',
-                  border: '1px solid #1e1e1e',
-                  borderRadius: '7px',
-                  fontSize: '11px',
-                  color: 'var(--obsidian-text-muted)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
-                className="header-action-btn"
-              >
-                <SquarePen size={13} />
-                <span>New Message</span>
-              </button>
-            }
-          />
-        )}
-        <style jsx>{`
-          .header-action-btn:hover {
-            background: #1a1a1a !important;
-            border-color: #2a2a2a !important;
-            color: var(--obsidian-text) !important;
+          display: 'flex', alignItems: 'center', gap: 8,
+          width: '100%', padding: '9px 12px',
+          background: '#ffffff', border: '1px solid #e0e0e0',
+          borderRadius: 8, cursor: 'default', transition: 'all 0.15s',
+          boxSizing: 'border-box'
+        }}
+          onMouseEnter={e => { e.currentTarget.style.background='#f5f5f5'; e.currentTarget.style.borderColor='#ccc' }}
+          onMouseLeave={e => { e.currentTarget.style.background='#ffffff'; e.currentTarget.style.borderColor='#e0e0e0' }}
+        >
+          {activeView === 'rooms'
+            ? <Users size={14} color="#444" />
+            : <UserRound size={14} color="#444" />
           }
-        `}</style>
+          <span style={{ 
+            flex: 1, 
+            fontSize: 13, 
+            fontWeight: 500, 
+            color: '#111', 
+            letterSpacing: '-0.01em', 
+            userSelect: 'none' 
+          }}>
+            {activeView === 'rooms' ? 'Rooms' : 'Messages'}
+          </span>
+          <span
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              if (activeView === 'rooms') {
+                setShowNew(v => !v);
+              } else {
+                setShowPicker(true);
+              }
+            }}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer', 
+              color: '#666', 
+              transition: 'color 0.15s' 
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = '#111'}
+            onMouseLeave={e => e.currentTarget.style.color = '#666'}
+          >
+            {activeView === 'rooms' ? <Plus size={13} /> : <SquarePen size={13} />}
+          </span>
+        </div>
+
+        {activeView === 'dms' && (
+          <NewDMButton isOpen={showPicker} setIsOpen={setShowPicker} />
+        )}
       </div>
 
       {/* ROOMS VIEW */}
@@ -158,6 +134,7 @@ export default function ChannelList({ activeView }: ChannelListProps) {
                 <Link key={room._id} href={`/chat/${room._id}`}
                   style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontFamily: 'Geist, sans-serif', color: isActive ? 'var(--obsidian-primary)' : 'var(--obsidian-text-muted)', textDecoration: 'none', transition: 'color 0.3s', paddingLeft: isActive ? 0 : 8 }}>
                   {isActive && <span style={{ width: 1, height: 12, background: 'var(--obsidian-primary)', flexShrink: 0 }} />}
+                  <Users size={12} strokeWidth={1.5} style={{ opacity: 0.6 }} />
                   <span style={{ 
                     whiteSpace: 'nowrap', 
                     overflow: 'hidden', 
@@ -210,24 +187,38 @@ export default function ChannelList({ activeView }: ChannelListProps) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {filteredDms.map(room => (
-              <DMItem key={room._id} room={room} isActive={pathname === `/chat/${room._id}`} />
+            {dmRooms.map(room => (
+              <DMItem key={room._id} room={room} isActive={pathname === `/chat/${room._id}`} searchQuery={searchQuery} />
             ))}
           </div>
         </div>
       )}
 
-      <div style={{ marginTop: 'auto', paddingBottom: 48, paddingTop: 32, borderTop: '1px solid var(--obsidian-border)' }}>
-        <span style={{ display: 'block', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.25em', color: 'var(--obsidian-text-faint)', marginBottom: 4 }}>Synthesis Mode</span>
-        <span style={{ fontSize: 10, fontFamily: 'Geist, sans-serif', color: 'var(--obsidian-primary-alpha)', letterSpacing: '0.1em' }}>
-          {user?.preferredLang?.split('-')[0].toUpperCase() ?? 'EN'} ⟷ ENGLISH
-        </span>
+      <div style={{ marginTop: 'auto', paddingBottom: 48, paddingTop: 32, borderTop: '1px solid var(--obsidian-border)', position: 'relative' }}>
+        <span style={{ display: 'block', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.25em', color: 'var(--color-ui-faint)', marginBottom: 4 }}>Synthesis Mode</span>
+        <button
+          onClick={() => setShowLangSettings(v => !v)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 6 }}
+        >
+          <span style={{ fontSize: 10, fontFamily: 'Geist, sans-serif', color: 'var(--color-accent-a-half)', letterSpacing: '0.1em', transition: 'color 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--color-accent-a-half)'}
+          >
+            {user?.preferredLang?.split('-')[0].toUpperCase() ?? 'EN'} ⟷ ALL · Change
+          </span>
+        </button>
+
+        {showLangSettings && (
+          <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: 8, zIndex: 100 }}>
+            <LanguageSettings onClose={() => setShowLangSettings(false)} />
+          </div>
+        )}
       </div>
     </section>
   )
 }
 
-function DMItem({ room, isActive }: { room: any; isActive: boolean }) {
+function DMItem({ room, isActive, searchQuery }: { room: any; isActive: boolean; searchQuery: string }) {
   const { user: currentUser } = useCurrentUser()
   const otherUserId = room.memberIds.find((id: string) => id !== currentUser?._id)
   
@@ -238,6 +229,11 @@ function DMItem({ room, isActive }: { room: any; isActive: boolean }) {
   const otherUser = otherUsers?.[0]
 
   if (!otherUser) return null
+
+  // Search filter
+  if (searchQuery && !otherUser.name?.toLowerCase().includes(searchQuery.toLowerCase()) && !otherUser.email?.toLowerCase().includes(searchQuery.toLowerCase())) {
+    return null
+  }
 
   return (
     <Link
