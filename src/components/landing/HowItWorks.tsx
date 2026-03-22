@@ -11,11 +11,11 @@ export default function HowItWorks() {
   const { isMobile } = useIsMobile()
 
   return (
-    <div style={{ background: '#111110', borderTop: '1px solid rgba(240,237,230,0.07)', borderBottom: '1px solid rgba(240,237,230,0.07)' }}>
+    <div style={{ background: 'var(--color-surface-base)', borderTop: '1px solid var(--color-cream-faint)', borderBottom: '1px solid var(--color-cream-faint)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: isMobile ? '60px 24px' : '88px 56px' }}>
-        <div style={{ fontSize: 11, letterSpacing: '3px', color: '#3a3835', textTransform: 'uppercase', marginBottom: isMobile ? 32 : 52, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ fontSize: 11, letterSpacing: '3px', color: 'var(--color-text-faint)', textTransform: 'uppercase', marginBottom: isMobile ? 32 : 52, display: 'flex', alignItems: 'center', gap: 12 }}>
           How it works
-          <div style={{ flex: 1, height: 1, background: 'rgba(240,237,230,0.07)' }} />
+          <div style={{ flex: 1, height: 1, background: 'var(--color-cream-faint)' }} />
         </div>
         
         <div style={{ 
@@ -30,13 +30,13 @@ export default function HowItWorks() {
                 flex: 1,
                 padding: isMobile ? '0' : i === 0 ? '40px 48px 40px 0' : i === 2 ? '40px 0 40px 48px' : '40px 48px',
               }}>
-                <span style={{ display: 'inline-block', fontSize: 10, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#d4a843', border: '1px solid rgba(212,168,67,0.2)', borderRadius: 4, padding: '3px 8px', marginBottom: 20 }}>{s.badge}</span>
-                <span style={{ fontSize: 56, fontFamily: 'Instrument Serif, serif', color: 'rgba(240,237,230,0.04)', display: 'block', marginBottom: 16, lineHeight: 1 }}>{String(i + 1).padStart(2, '0')}</span>
-                <div style={{ fontSize: 17, color: '#f0ede6', marginBottom: 10, fontFamily: 'Instrument Serif, serif', fontStyle: 'italic' }}>{s.t}</div>
-                <div style={{ fontSize: 13, color: '#6b6960', lineHeight: 1.7 }}>{s.d}</div>
+                <span style={{ display: 'inline-block', fontSize: 10, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--color-gold)', border: '1px solid var(--color-gold-alpha-faint)', borderRadius: 4, padding: '3px 8px', marginBottom: 20 }}>{s.badge}</span>
+                <span style={{ fontSize: 56, fontFamily: 'Instrument Serif, serif', color: 'var(--color-cream-soft)', display: 'block', marginBottom: 16, lineHeight: 1 }}>{String(i + 1).padStart(2, '0')}</span>
+                <div style={{ fontSize: 17, color: 'var(--color-text-bright)', marginBottom: 10, fontFamily: 'Instrument Serif, serif', fontStyle: 'italic' }}>{s.t}</div>
+                <div style={{ fontSize: 13, color: 'var(--color-text-dim)', lineHeight: 1.7 }}>{s.d}</div>
               </div>
               {!isMobile && i < 2 && (
-                <div style={{ width: 1, height: 100, background: 'rgba(240,237,230,0.07)', margin: '0 24px' }} />
+                <div style={{ width: 1, height: 100, background: 'var(--color-cream-faint)', margin: '0 24px' }} />
               )}
             </div>
           ))}
