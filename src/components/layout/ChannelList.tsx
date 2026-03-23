@@ -1,6 +1,6 @@
 'use client'
 import { useQuery, useMutation } from 'convex/react'
-import { api } from '@convex/_generated/api'
+import { api } from '../../../convex/_generated/api'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'

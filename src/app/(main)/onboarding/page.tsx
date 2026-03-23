@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery } from 'convex/react'
-import { api } from '@convex/_generated/api'
+import { api } from '../../../../convex/_generated/api'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, ChevronRight, Loader2 } from 'lucide-react'

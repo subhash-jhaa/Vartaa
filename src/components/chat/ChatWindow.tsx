@@ -1,7 +1,7 @@
 'use client'
 import { useQuery, useMutation, useAction } from 'convex/react'
-import { api } from '@convex/_generated/api'
-import { Id } from '@convex/_generated/dataModel'
+import { api } from '../../../convex/_generated/api'
+import { Id } from '../../../convex/_generated/dataModel'
 import MessageList from './MessageList'
 import MessageInput from './MessageInput'
 import PinnedMessages from '@/components/features/PinnedMessages'
@@ -21,7 +21,7 @@ export default function ChatWindow({ roomId }: { roomId: Id<'rooms'> }) {
   const { user: currentUser } = useCurrentUser()
   const hasRoomId = typeof roomId === 'string' && roomId.length > 0
   const room = useQuery(api.rooms.getRoom, hasRoomId ? { roomId } : 'skip')
-  const messages = useQuery(api.messages.getMessages, hasRoomId ? { roomId, limit: 10 } : 'skip')
+  const messages = useQuery(api.messages.getMessages, hasRoomId ? { roomId, limit: 50 } : 'skip')
   const clearChat = useMutation(api.messages.clearChat)
   const markRead = useMutation(api.messages.markRead)
   const summarize = useAction(api.actions.ai.summarizeThread)

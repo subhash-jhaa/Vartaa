@@ -1,5 +1,5 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { mutation, query, internalMutation } from './_generated/server'
+import { mutation, query, internalMutation, internalQuery } from './_generated/server'
 import { v } from 'convex/values'
 
 export const getMeById = query({
@@ -20,6 +20,13 @@ export const getMe = query({
 })
 
 export const getUsersByIds = query({
+  args: { userIds: v.array(v.id("users")) },
+  handler: async (ctx, { userIds }) => {
+    return Promise.all(userIds.map(id => ctx.db.get(id)))
+  },
+})
+
+export const getUsersByIdsInternal = internalQuery({
   args: { userIds: v.array(v.id("users")) },
   handler: async (ctx, { userIds }) => {
     return Promise.all(userIds.map(id => ctx.db.get(id)))
