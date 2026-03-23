@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import AnimatedChatDemo from './AnimatedChatDemo'
 
 export default function Hero() {
   const { isMobile } = useIsMobile()
@@ -107,7 +108,7 @@ export default function Hero() {
           marginRight: isMobile ? 0 : '-150px',
           width: '100%',
         }}>
-          {/* AnimatedChatDemo removed */}
+          <AnimatedChatDemo />
         </div>
       </div>
 
