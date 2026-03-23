@@ -1,7 +1,7 @@
 'use client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useQuery } from 'convex/react'
-import { api } from '@convex/_generated/api'
+import { api } from '../../../../convex/_generated/api'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { useIsMobile } from '@/hooks/useIsMobile'

@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useAction } from 'convex/react'
-import { api } from '@convex/_generated/api'
-import { Id } from '@convex/_generated/dataModel'
+import { api } from '../../../convex/_generated/api'
+import { Id } from '../../../convex/_generated/dataModel'
 import { Sparkles, Loader2 } from 'lucide-react'
 
 interface SmartRepliesProps {

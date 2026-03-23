@@ -1,7 +1,7 @@
 'use client'
 import { useQuery } from 'convex/react'
-import { api } from '@convex/_generated/api'
-import { Id } from '@convex/_generated/dataModel'
+import { api } from '../../../convex/_generated/api'
+import { Id } from '../../../convex/_generated/dataModel'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MessageItem from './MessageItem'
 import { useEffect, useRef, useState } from 'react'
@@ -72,7 +72,7 @@ export default function MessageList({
               ))}
             </div>
             <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.25em', color: 'var(--obsidian-text-faint)' }}>
-              {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} translating...
+              {typingUsers.map((u: any) => u.userName ?? 'Someone').join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
             </span>
           </div>
         </div>

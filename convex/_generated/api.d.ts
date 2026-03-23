@@ -13,6 +13,7 @@ import type * as actions_stt from "../actions/stt.js";
 import type * as actions_translate from "../actions/translate.js";
 import type * as actions_tts from "../actions/tts.js";
 import type * as auth from "../auth.js";
+import type * as debug from "../debug.js";
 import type * as http from "../http.js";
 import type * as messages from "../messages.js";
 import type * as reactions from "../reactions.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   "actions/translate": typeof actions_translate;
   "actions/tts": typeof actions_tts;
   auth: typeof auth;
+  debug: typeof debug;
   http: typeof http;
   messages: typeof messages;
   reactions: typeof reactions;

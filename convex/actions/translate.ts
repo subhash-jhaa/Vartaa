@@ -3,7 +3,18 @@ import { internalAction } from "../_generated/server";
 import { v } from "convex/values";
 import { internal, api } from "../_generated/api";
 
+function isLikelyEnglish(text: string): boolean {
+  const asciiCount = [...text].filter(c => c.charCodeAt(0) < 128).length;
+  return asciiCount / text.length > 0.9;
+}
+
+async function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  const timer = new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms));
+  return Promise.race([promise, timer]);
+}
+
 async function detectLanguage(text: string): Promise<string> {
+  if (isLikelyEnglish(text)) return "en-IN";
   const res = await fetch("https://api.sarvam.ai/text/lid", {
     method: "POST",
     headers: {
@@ -16,12 +27,13 @@ async function detectLanguage(text: string): Promise<string> {
   return data.language_code ?? "en-IN";
 }
 
-async function translateText(text: string, sourceLang: string, targetLang: string): Promise<string> {
+async function translateText(
+  text: string,
+  sourceLang: string,
+  targetLang: string
+): Promise<string> {
   if (sourceLang === targetLang) return text;
-  
-  // Sarvam supports 22 Indian languages. If target is foreign, we might need a fallback or different provider.
-  // For now, let's assume Sarvam handles what's in our shared list or we log it.
-  
+
   const res = await fetch("https://api.sarvam.ai/translate", {
     method: "POST",
     headers: {
@@ -34,10 +46,14 @@ async function translateText(text: string, sourceLang: string, targetLang: strin
       target_language_code: targetLang,
       model: "mayura:v1",
       mode: "modern-colloquial",
+      enable_preprocessing: true,
     }),
   });
+
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message ?? "Sarvam translate failed");
+  console.log("[translate] Sarvam response:", res.status, JSON.stringify(data));
+  if (!res.ok) throw new Error(`Sarvam ${res.status}: ${JSON.stringify(data)}`);
+  if (!data.translated_text) throw new Error(`No translated_text: ${JSON.stringify(data)}`);
   return data.translated_text as string;
 }
 
@@ -46,73 +62,75 @@ export const translateMessageAction = internalAction({
     messageId: v.id("messages"),
     text: v.string(),
     roomId: v.id("rooms"),
+    targetLang: v.optional(v.string()),   // NEW: specific language to translate to
   },
-  handler: async (ctx, { messageId, text, roomId }) => {
+  handler: async (ctx, { messageId, text, roomId, targetLang }) => {
+    console.log("[translate] START — text:", text.slice(0, 60), "targetLang:", targetLang);
+    console.log("[translate] SARVAM_API_KEY set:", !!process.env.SARVAM_API_KEY);
+
     try {
-      const originalLang = await detectLanguage(text);
+      // Detect source language
+      const originalLang = await withTimeout(detectLanguage(text), 3000, "en-IN");
+      console.log("[translate] originalLang:", originalLang);
 
-      const room = await ctx.runQuery(api.rooms.getRoom, { roomId });
-      if (!room) return;
+      // On-demand mode: only translate to the one requested language
+      const targetLangs = targetLang
+        ? [targetLang].filter(l => l !== originalLang)
+        : [];   // auto-translate on send is disabled — targetLang is always provided now
 
-     const members = await ctx.runQuery(api.users.getUsersByIds, { userIds: room.memberIds });
+      if (targetLangs.length === 0) {
+        // Source and target are the same — no translation needed
+        await ctx.runMutation(internal.messages.updateTranslations, {
+          messageId,
+          translations: {},
+          originalLang,
+          translationStatus: "skipped",
+        });
+        return;
+      }
 
-      const targetLangs = [
-        ...new Set(
-          members
-            .filter(Boolean)
-            .map((m: any) => m.preferredLang ?? "en-IN")
-        ),
-      ].filter((l) => l !== originalLang);
+      // Translate to all requested languages in parallel
+      const results = await Promise.allSettled(
+        targetLangs.map(async (lang) => {
+          const translated = await withTimeout(
+            translateText(text, originalLang, lang),
+            6000,
+            ""
+          );
+          return { lang, text: translated };
+        })
+      );
 
-      const translations: Record<string, string> = {};
-      for (const targetLang of targetLangs) {
-        try {
-          translations[targetLang] = await translateText(text, originalLang, targetLang);
-        } catch (err) {
-          console.error(`Translation to ${targetLang} failed:`, err);
+      // Fetch existing translations from DB so we don't overwrite other languages
+      const message = await ctx.runQuery(api.messages.getMessageById, { messageId });
+      const existingTranslations = (message?.translations as Record<string, string>) ?? {};
+
+      // Merge new translations into existing ones
+      const translations: Record<string, string> = { ...existingTranslations };
+      for (const result of results) {
+        if (result.status === "fulfilled" && result.value.text) {
+          translations[result.value.lang] = result.value.text;
+        } else if (result.status === "rejected") {
+          console.error("[translate] failed:", result.reason);
         }
       }
+
+      console.log("[translate] translations:", Object.keys(translations));
 
       await ctx.runMutation(internal.messages.updateTranslations, {
         messageId,
         translations,
         originalLang,
+        translationStatus: "done",
       });
 
-      try {
-        const insightPrompt = `Original language: ${originalLang}
-Text: "${text}"
-Give ONE language learning tip (max 15 words) about this text —
-a grammar pattern, cultural nuance, idiom meaning, or word origin.
-Reply with ONLY the tip. No labels, no explanation.`
-
-        const insightRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: insightPrompt }] }]
-            }),
-          }
-        )
-        const insightData = await insightRes.json()
-        const tip = insightData.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
-        if (tip) {
-          await ctx.runMutation(internal.messages.updateLanguageInsight, {
-            messageId,
-            insight: tip,
-          })
-        }
-      } catch (err) {
-        console.error("Language insight failed:", err)
-      }
     } catch (err) {
-      console.error("Translation action failed:", err);
+      console.error("[translate] FATAL:", err);
       await ctx.runMutation(internal.messages.updateTranslations, {
         messageId,
         translations: {},
         originalLang: "en-IN",
+        translationStatus: "failed",
       });
     }
   },

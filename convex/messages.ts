@@ -23,7 +23,7 @@ export const sendMessage = mutation({
       body,
       replyToId,
       translations: {},
-      translationStatus: "pending",
+      translationStatus: "done",
       isEdited: false,
       isDeleted: false,
       isPinned: false,
@@ -33,12 +33,6 @@ export const sendMessage = mutation({
     await ctx.db.patch(roomId, {
       lastMessageAt: Date.now(),
       lastMessagePreview: body.slice(0, 80),
-    });
-
-    await ctx.scheduler.runAfter(0, internal.actions.translate.translateMessageAction, {
-      messageId,
-      text: body,
-      roomId,
     });
 
     return messageId;
@@ -75,14 +69,8 @@ export const editMessage = mutation({
       body,
       isEdited: true,
       editedAt: Date.now(),
-      translationStatus: "pending",
+      translationStatus: "done",
       translations: {},
-    });
-
-    await ctx.scheduler.runAfter(0, internal.actions.translate.translateMessageAction, {
-      messageId,
-      text: body,
-      roomId: msg.roomId,
     });
   },
 });
@@ -114,12 +102,18 @@ export const updateTranslations = internalMutation({
     messageId: v.id("messages"),
     translations: v.any(),
     originalLang: v.string(),
+    translationStatus: v.optional(v.union(
+      v.literal("pending"),
+      v.literal("done"),
+      v.literal("failed"),
+      v.literal("skipped")
+    )),
   },
-  handler: async (ctx, { messageId, translations, originalLang }) => {
+  handler: async (ctx, { messageId, translations, originalLang, translationStatus }) => {
     await ctx.db.patch(messageId, {
       translations,
       originalLang,
-      translationStatus: "done",
+      translationStatus: translationStatus ?? "done",
     });
   },
 });
@@ -271,7 +265,7 @@ export const sendVoiceMessage = mutation({
       type: "voice",
       audioStorageId,
       audioDuration,
-      translationStatus: "pending",
+      translationStatus: "done",
       isEdited: false,
       isDeleted: false,
       isPinned: false,
@@ -281,12 +275,6 @@ export const sendVoiceMessage = mutation({
     await ctx.db.patch(roomId, {
       lastMessageAt: Date.now(),
       lastMessagePreview: "🔇 Voice message",
-    });
-
-    await ctx.scheduler.runAfter(0, internal.actions.stt.transcribeAndTranslate, {
-      messageId,
-      audioStorageId,
-      roomId,
     });
 
     return messageId;
@@ -385,3 +373,39 @@ export const getReadReceipt = query({
     }
   }
 })
+
+export const requestTranslation = mutation({
+  args: {
+    messageId: v.id("messages"),
+    targetLang: v.string(),
+  },
+  handler: async (ctx, { messageId, targetLang }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const message = await ctx.db.get(messageId);
+    if (!message) throw new Error("Message not found");
+
+    // If we already have this translation cached, do nothing
+    const existing = (message.translations as Record<string, string> | undefined)?.[targetLang];
+    if (existing) return;
+
+    // Mark as pending so the UI can show a spinner
+    await ctx.db.patch(messageId, { translationStatus: "pending" });
+
+    // Schedule the translate action for just this message + target lang
+    await ctx.scheduler.runAfter(0, internal.actions.translate.translateMessageAction, {
+      messageId,
+      text: message.body ?? "",
+      roomId: message.roomId,
+      targetLang,             // pass specific target lang — action will use this
+    });
+  },
+});
+
+export const getMessageById = query({
+  args: { messageId: v.id("messages") },
+  handler: async (ctx, { messageId }) => {
+    return await ctx.db.get(messageId);
+  },
+});

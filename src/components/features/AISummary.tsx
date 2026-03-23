@@ -1,8 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useAction } from 'convex/react'
-import { api } from '@convex/_generated/api'
-import { Id } from '@convex/_generated/dataModel'
+import { api } from '../../../convex/_generated/api'
+import { Id } from '../../../convex/_generated/dataModel'
 import { Stars, RefreshCcw, X } from 'lucide-react'
 
 export default function AISummaryButton({ roomId }: { roomId: Id<'rooms'> }) {

@@ -87,7 +87,7 @@ export default function DropdownMenu({ items, onClose }: DropdownMenuProps) {
                 justifyContent: 'center',
                 color: 'var(--obsidian-text-faint)',
               }}>
-                {React.cloneElement(item.icon as React.ReactElement, { size: 14 })}
+                {React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 14 })}
               </span>
             )}
             <span>{item.label}</span>

@@ -1,7 +1,7 @@
 'use client'
 import { useQuery, useMutation } from 'convex/react'
-import { api } from '@convex/_generated/api'
-import { Id } from '@convex/_generated/dataModel'
+import { api } from '../../../convex/_generated/api'
+import { Id } from '../../../convex/_generated/dataModel'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 export default function ReactionDisplay({ messageId }: { messageId: Id<'messages'> }) {

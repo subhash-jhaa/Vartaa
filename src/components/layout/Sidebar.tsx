@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation } from 'convex/react'
 import { useAuthActions } from '@convex-dev/auth/react'
-import { api } from '@convex/_generated/api'
+import { api } from '../../../convex/_generated/api'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
