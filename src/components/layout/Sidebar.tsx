@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react'
 import VartaaLogo from '@/components/VartaaLogo'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { usePresence } from '@/hooks/usePresence'
 
 interface SidebarProps {
   onClose?: () => void
@@ -25,18 +26,17 @@ export default function Sidebar({ onClose }: SidebarProps) {
     api.rooms.getMyRooms,
     isAuthenticated ? {} : 'skip'
   )
-  const updatePresence = useMutation(api.users.updatePresence)
   const createRoom = useMutation(api.rooms.createRoom)
+  const updatePresence = useMutation(api.users.updatePresence)
+  
+  // Automate presence heartbeats and away status
+  usePresence()
 
   const [showNewRoom, setShowNewRoom] = useState(false)
   const [newRoomName, setNewRoomName] = useState('')
   const [showUserMenu, setShowUserMenu] = useState(false)
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      updatePresence({ presence: 'online' }).catch(console.error)
-    }
-  }, [isAuthenticated, updatePresence])
+  // Manual presence initialization is now handled by usePresence() hook
 
   // Do not render sidebar until auth is confirmed
   if (isLoading) return (
@@ -73,12 +73,15 @@ export default function Sidebar({ onClose }: SidebarProps) {
     return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
   }
 
-  const getPresenceColor = (presence: string) => {
-    switch (presence) {
+  const getPresenceColor = (user: any) => {
+    const isOnline = (user.lastSeenAt ?? 0) > Date.now() - 60000
+    if (!isOnline) return 'rgba(240,237,230,0.2)' // Offline
+
+    switch (user.presence) {
       case 'online': return '#4ade80'
       case 'away': return '#facc15'
       case 'dnd': return '#f87171'
-      default: return 'rgba(240,237,230,0.2)'
+      default: return '#4ade80'
     }
   }
 
@@ -158,11 +161,13 @@ export default function Sidebar({ onClose }: SidebarProps) {
                   {(currentUser.name || currentUser.email || 'U')[0].toUpperCase()}
                 </div>
               )}
-              <div style={{ position: 'absolute', bottom: -2, right: -2, width: 10, height: 10, borderRadius: '50%', background: getPresenceColor(currentUser.presence ?? 'online'), border: '2px solid #111110' }} />
+              <div style={{ position: 'absolute', bottom: -2, right: -2, width: 10, height: 10, borderRadius: '50%', background: getPresenceColor(currentUser), border: '2px solid #111110' }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '13px', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentUser.name || 'User'}</div>
-              <div style={{ fontSize: '12px', color: '#6b6960' }}>{currentUser.presence ?? 'online'}</div>
+              <div style={{ fontSize: '12px', color: '#6b6960' }}>
+                { (currentUser.lastSeenAt ?? 0) > Date.now() - 60000 ? (currentUser.presence ?? 'online') : 'offline' }
+              </div>
             </div>
           </div>
         )}
@@ -172,7 +177,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
             {['online', 'away', 'dnd', 'offline'].map(status => (
               <button key={status} onClick={async () => { await updatePresence({ presence: status as any }); setShowUserMenu(false) }}
                 style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: 'transparent', border: 'none', padding: '8px 10px', color: '#c8c5be', fontSize: '13px', cursor: 'pointer', textAlign: 'left', borderRadius: 4 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: getPresenceColor(status) }} />
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: getPresenceColor({ presence: status, lastSeenAt: Date.now() }) }} />
                 <span style={{ textTransform: 'capitalize' }}>{status}</span>
               </button>
             ))}

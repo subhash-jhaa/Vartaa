@@ -1,7 +1,28 @@
 'use client'
 import Link from 'next/link'
+import { motion, type Variants } from 'motion/react'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import AnimatedChatDemo from './AnimatedChatDemo'
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.3,
+    },
+  },
+}
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: 'easeOut' },
+  },
+}
 
 export default function Hero() {
   const { isMobile } = useIsMobile()
@@ -29,15 +50,19 @@ export default function Hero() {
         alignItems: 'center',
       }}>
         {/* LEFT — existing hero text content */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28, position: 'relative' }}>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={itemVariants} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28, position: 'relative' }}>
             <div style={{ width: 24, height: 1, background: 'var(--color-gold)' }} />
             <span style={{ fontSize: 11, letterSpacing: '3px', color: 'var(--color-gold)', textTransform: 'uppercase' }}>
               Team communication, reimagined
             </span>
-          </div>
+          </motion.div>
 
-          <h1 style={{
+          <motion.h1 variants={itemVariants} style={{
             fontSize: isMobile ? 48 : 56,
             lineHeight: 1.05,
             letterSpacing: isMobile ? '-1.5px' : '-2px',
@@ -50,13 +75,13 @@ export default function Hero() {
             One message.<br />
             <em style={{ fontStyle: 'italic', color: 'var(--color-gold)' }}>Every language.</em><br />
             Zero friction.
-          </h1>
+          </motion.h1>
 
-          <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--color-text-warm)', maxWidth: 480, lineHeight: 1.75, marginBottom: 48, fontWeight: 300, position: 'relative' }}>
+          <motion.p variants={itemVariants} style={{ fontSize: isMobile ? 16 : 17, color: 'var(--color-text-warm)', maxWidth: 480, lineHeight: 1.75, marginBottom: 48, fontWeight: 300, position: 'relative' }}>
             Vartaa translates every message in real time across all 22 Indian languages. Built for teams that think in more than one tongue.
-          </p>
+          </motion.p>
 
-          <div style={{
+          <motion.div variants={itemVariants} style={{
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
             gap: 12,
@@ -94,22 +119,26 @@ export default function Hero() {
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-cream-hover)'; e.currentTarget.style.color = 'var(--color-cream)' }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-cream-faint)'; e.currentTarget.style.color = 'var(--color-text-dim)' }}
             >See how it works →</a>
-          </div>
+          </motion.div>
 
-        </div>
+        </motion.div>
 
         {/* RIGHT — animated chat demo */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: isMobile ? 'center' : 'flex-end',
-          marginTop: isMobile ? '20px' : '-60px',
-          paddingRight: '0px',
-          marginRight: isMobile ? 0 : '-150px',
-          width: '100%',
-        }}>
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: isMobile ? 'center' : 'flex-end',
+            marginTop: isMobile ? '20px' : '-60px',
+            paddingRight: '0px',
+            marginRight: isMobile ? 0 : '-150px',
+            width: '100%',
+          }}>
           <AnimatedChatDemo />
-        </div>
+        </motion.div>
       </div>
 
     </section>

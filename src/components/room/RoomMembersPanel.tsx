@@ -100,7 +100,7 @@ export default function RoomMembersPanel({ roomId, currentUserId, onClose }: Roo
                   alt={member.name || "User"}
                   style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
                 />
-                {member.presence === 'online' && (
+                {(member.lastSeenAt ?? 0) > Date.now() - 60000 && (
                   <div style={{
                     position: 'absolute',
                     bottom: 0,
@@ -108,7 +108,9 @@ export default function RoomMembersPanel({ roomId, currentUserId, onClose }: Roo
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    backgroundColor: '#22c55e',
+                    backgroundColor: 
+                      member.presence === 'dnd' ? '#f87171' : 
+                      member.presence === 'away' ? '#facc15' : '#22c55e',
                     border: '2px solid #0d0d0d'
                   }} />
                 )}

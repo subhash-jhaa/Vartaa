@@ -82,6 +82,18 @@ export const updatePresence = mutation({
   }
 })
 
+/**
+ * Lightweight heartbeat to keep lastSeenAt fresh without changing explicit status
+ */
+export const heartbeat = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return;
+    await ctx.db.patch(userId, { lastSeenAt: Date.now() });
+  }
+})
+
 export const setOnboardingComplete = mutation({
   args: {},
   handler: async (ctx) => {

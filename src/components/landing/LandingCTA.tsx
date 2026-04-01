@@ -1,7 +1,31 @@
 'use client'
 import { useState } from 'react'
+import { motion, type Variants } from 'motion/react'
 import Link from 'next/link'
 import { useIsMobile } from '@/hooks/useIsMobile'
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { 
+      duration: 0.8, 
+      ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+}
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.6, ease: 'easeOut' }
+  }
+}
 
 export default function LandingCTA() {
   const [email, setEmail] = useState('')
@@ -9,22 +33,27 @@ export default function LandingCTA() {
 
   return (
     <div style={{ padding: isMobile ? '0 24px 60px' : '0 56px 88px' }}>
-      <div style={{
-        border: '1px solid var(--color-cream-faint)', borderRadius: 12,
-        padding: isMobile ? '48px 24px' : '64px 80px',
-        display: 'flex', 
-        flexDirection: isMobile ? 'column' : 'row',
-        justifyContent: 'space-between', 
-        alignItems: isMobile ? 'center' : 'flex-start', 
-        textAlign: isMobile ? 'center' : 'left',
-        gap: isMobile ? 32 : 0,
-        position: 'relative', 
-        overflow: 'hidden',
-      }}>
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-100px' }}
+        style={{
+          border: '1px solid var(--color-cream-faint)', borderRadius: 12,
+          padding: isMobile ? '48px 24px' : '64px 80px',
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row',
+          justifyContent: 'space-between', 
+          alignItems: isMobile ? 'center' : 'flex-start', 
+          textAlign: isMobile ? 'center' : 'left',
+          gap: isMobile ? 32 : 0,
+          position: 'relative', 
+          overflow: 'hidden',
+        }}>
         {/* Top accent line */}
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, var(--color-gold-alpha), transparent)' }} />
 
-        <div>
+        <motion.div variants={itemVariants}>
           <h2 style={{ 
             fontSize: isMobile ? 32 : 42, 
             fontFamily: 'Instrument Serif, serif', 
@@ -35,16 +64,18 @@ export default function LandingCTA() {
             Start speaking<br />every language.
           </h2>
           <p style={{ fontSize: 14, color: 'var(--color-text-warm)' }}>Free forever for small teams. No credit card required.</p>
-        </div>
+        </motion.div>
 
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: isMobile ? 'center' : 'flex-end', 
-          gap: 10, 
-          flexShrink: 0,
-          width: isMobile ? '100%' : 'auto'
-        }}>
+        <motion.div 
+          variants={itemVariants}
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: isMobile ? 'center' : 'flex-end', 
+            gap: 10, 
+            flexShrink: 0,
+            width: isMobile ? '100%' : 'auto'
+          }}>
           <div style={{ 
             display: 'flex', 
             flexDirection: isMobile ? 'column' : 'row',
@@ -97,8 +128,8 @@ export default function LandingCTA() {
             color: 'var(--color-text-dim)',
             textAlign: isMobile ? 'center' : 'right'
           }}>No credit card required · Free for teams up to 10</span>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   )
 }

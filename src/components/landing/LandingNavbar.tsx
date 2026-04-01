@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { motion } from 'motion/react'
 import VartaaLogo from '@/components/VartaaLogo'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -20,19 +21,24 @@ export default function LandingNavbar() {
   }, [])
 
   return (
-    <nav style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: isMobile ? '12px 20px' : '18px 56px',
-      borderBottom: '1px solid var(--color-cream-faint)',
-      position: isMobile ? 'relative' : 'sticky', 
-      top: isMobile ? 'auto' : 0,
-      background: scrolled ? 'rgba(12,12,11,0.96)' : 'var(--color-ink)',
-      backdropFilter: scrolled ? 'blur(12px)' : 'none',
-      transition: 'all 0.2s',
-      width: '100%',
-      maxWidth: '100vw',
-      zIndex: 100,
-    }}>
+    <motion.nav 
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: isMobile ? '12px 20px' : '18px 56px',
+        borderBottom: '1px solid var(--color-cream-faint)',
+        position: isMobile ? 'relative' : 'sticky', 
+        top: isMobile ? 'auto' : 0,
+        background: scrolled ? 'rgba(12,12,11,0.96)' : 'var(--color-ink)',
+        backdropFilter: scrolled ? 'blur(12px)' : 'none',
+        transition: 'all 0.2s',
+        width: '100%',
+        maxWidth: '100vw',
+        zIndex: 100,
+      }}
+    >
       <div style={{
         width: '100%',
         maxWidth: 1564, // 1500px content + 32px * 2 side padding
@@ -62,6 +68,6 @@ export default function LandingNavbar() {
           )}
         </div>
       </div>
-    </nav>
+    </motion.nav>
   )
 }

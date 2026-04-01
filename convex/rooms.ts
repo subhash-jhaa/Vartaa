@@ -179,6 +179,7 @@ export const getRoomMembers = query({
         email: u.email,
         avatarUrl: u.avatarUrl,
         presence: u.presence,
+        lastSeenAt: u.lastSeenAt,
         isAdmin: (room.adminIds ?? [room.createdBy]).includes(u._id),
       }))
   }
